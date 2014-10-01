@@ -2,7 +2,7 @@
  * main.c
  *
  *  Created on: Jun 29, 2010
- *      Author: andrey
+ *      Author: Andrey Zhdanov
  *      
  *  Usage: SyncDaemon PORTBASE OUTBITS SITE_ID
  *         SyncDaemon PORTBASE OUTBITS
