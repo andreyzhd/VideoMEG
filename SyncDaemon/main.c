@@ -111,7 +111,7 @@ int main(int _argc, char* _argv[])
     // Initialize parallel port
     if (ioperm(portbase, 1, 1))
     {
-        fprintf(stderr, "Cannot get the port. May be you should run this program as root\n");
+        fprintf(stderr, "Cannot get the port. Maybe you should run this program as root\n");
         return(1);
     }
     outb(0, portbase);
