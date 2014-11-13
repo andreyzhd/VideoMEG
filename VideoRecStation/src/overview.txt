@@ -1,0 +1,36 @@
+/*! \mainpage Video Recording Workstation
+
+\section dd_sec Project-wide Design Decisions
+
+In some cases "volatile bool" variable is used for interthread communication.
+In such cases the variable is not protected by mutex, semaphore or something
+similar. This is done to avoid priority inversion and, to a lesser degree, to
+make the code more readable. It is assumed that access to a "volatile bool" is
+"atomic enough".
+
+Circular buffers are used for "single producer/single or multiple consumer"
+interthread communication. We assume that if the buffer is large enough, any
+particular data chunk will be retained long enough before being overwritten.
+Thus we assume that all the consumers will have enough time to process it
+without any need for additional synchronization. 
+
+\section setup_sec Setup Notes
+
+\subsection prio_ssec Permissions for changing priorities
+The program needs permissions to elevate process static priorities to work
+properly. You need to give the permissions to the user running the program.
+This can be done by adding the line
+
+myusername - rtprio 95
+
+to limits.conf (/etc/security/limits.conf, replace "myusername" by the username
+of the user running the program).
+
+\subsection cam_ssub Camera permissions
+To use the camera the program needs permission to access camera devices. To
+make sure that the device created when a camera is plugged in has correct
+permissions, create file named /etc/udev/rules.d/10-raw1394.rules containing
+the line
+
+SUBSYSTEM=="ieee1394_protocol", MODE="666"
+*/
