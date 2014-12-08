@@ -1,0 +1,2 @@
+Examples from the article "Introduction to Sound Programming with ALSA" in Linux Journal.
+http://www.linuxjournal.com/article/6735
