@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=VideoRecStation
+Comment=Record Video during MEG experiments
+Exec=/usr/local/bin/VideoRecStation
+Terminal=false
+Type=Application
+Icon=applications-science
+Categories=Science;Application;
+Name[en_US]=VideoRecStation
