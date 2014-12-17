@@ -43,6 +43,7 @@ public slots:
     void onGainChanged(int _newVal);
     void onUVChanged(int _newVal);
     void onVRChanged(int _newVal);
+    void onNewFrame(unsigned char* _jpegBuf);
 
     //! Stop all the threads associated with the dialog.
     /*!
@@ -61,6 +62,10 @@ private:
     CycDataBuffer*			cycVideoBufJpeg;
     VideoFileWriter*		videoFileWriter;
     VideoCompressorThread*	videoCompressorThread;
+
+    // These variables are used for showing the FPS
+    u_int64_t               prevFrameTstamp=0;
+    int                     frameCnt=0;
 };
 
 #endif // VIDEODIALOG_H

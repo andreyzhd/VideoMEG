@@ -46,6 +46,7 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraId, QWidget *parent
 	videoCompressorThread = new VideoCompressorThread(cycVideoBufRaw, cycVideoBufJpeg, settings.color, settings.jpgQuality);
 
     QObject::connect(cycVideoBufJpeg, SIGNAL(chunkReady(unsigned char*)), ui.videoWidget, SLOT(onDrawFrame(unsigned char*)));
+    QObject::connect(cycVideoBufJpeg, SIGNAL(chunkReady(unsigned char*)), this, SLOT(onNewFrame(unsigned char*)));
 
 	// Setup gain/shutter sliders
     ui.shutterSlider->setMinimum(SHUTTER_MIN_VAL);
@@ -169,6 +170,31 @@ void VideoDialog::onVRChanged(int _newVal)
         cerr << "Could not set white balance register" << endl;
         //abort();
     }
+}
+
+
+void VideoDialog::onNewFrame(unsigned char* _jpegBuf)
+{
+    ChunkAttrib chunkAttrib;
+    float       fps;
+    char        fpsLabelBuff[100];
+
+    chunkAttrib = *((ChunkAttrib*)(_jpegBuf-sizeof(ChunkAttrib)));
+
+    if (prevFrameTstamp)
+    {
+        fps = 1 / (float(chunkAttrib.timestamp - prevFrameTstamp) / 1000);
+        sprintf(fpsLabelBuff, "FPS: %02.01f", fps);
+
+        if(frameCnt == 10)
+        {
+            ui.fpsLabel->setText(fpsLabelBuff);
+            frameCnt = 0;
+        }
+    }
+
+    prevFrameTstamp = chunkAttrib.timestamp;
+    frameCnt++;
 }
 
 
