@@ -66,7 +66,7 @@ def comp_tstamps(inp, sfreq):
     of pulses correctly. This is because there is no trigger before the train
     and there will be no dtrigs value before the first trigger of the train.
     Thus the first pulse train will always be ignored. It would be neat to fix
-    this. 
+    this.
     """
     
     THRESH = 3
@@ -105,6 +105,6 @@ def comp_tstamps(inp, sfreq):
     data_tstamps = numpy.polyval(p, numpy.arange(len(inp)))
     errs = numpy.abs(numpy.polyval(p, samps) - tss)
     
-    print('Regression fit errors (abs): mean %f, median %f, max %f' % (errs.mean(), numpy.median(errs), errs.max()))
+    print('comp_tstamps: regression fit errors (abs): mean %f, median %f, max %f' % (errs.mean(), numpy.median(errs), errs.max()))
 
     return(data_tstamps)

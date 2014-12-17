@@ -20,6 +20,8 @@ import time
 import math
 import numpy
 
+_BYTES_PER_SAMPLE = 2
+
 class UnknownVersionError(Exception):
     pass
 
@@ -73,7 +75,7 @@ class AudioData:
         nchan     - number of channels
         ts        - buffers' timestamps
         raw_audio - raw audio data
-        buf_sz    - buffer size
+        buf_sz    - buffer size (bytes)
     """
     def __init__(self, file_name):
         data_file = open(file_name, 'rb')    
@@ -92,7 +94,7 @@ class AudioData:
             
         self.srate, self.nchan = struct.unpack('II', data_file.read(8))
         
-        #get the size of the data part of the file
+        # get the size of the data part of the file
         begin_data = data_file.tell()
         data_file.seek(0, 2)
         end_data = data_file.tell()
@@ -111,6 +113,38 @@ class AudioData:
             self.ts[i] = ts
 
         data_file.close()
+        
+    def format_audio(self):
+        """Return the formatted version or self.raw_audio.
+        Return:
+            audio     - nchan-by-nsamp matrix of the audio data
+            audio_ts  - timestamps for all the audio samples
+            
+        Caution: this function consumes a lot of memory!
+        """
+        
+        # compute timestamps for all the audio samples
+        n_chunks = len(self.ts)
+        samp_per_buf = self.buf_sz / (self.nchan * _BYTES_PER_SAMPLE)
+        nsamp = samp_per_buf * n_chunks
+
+        samps = numpy.arange(samp_per_buf-1, nsamp, samp_per_buf)
+              
+        p = numpy.polyfit(samps, self.ts, 1)
+        audio_ts = numpy.polyval(p, numpy.arange(nsamp))
+        
+        errs = numpy.abs(numpy.polyval(p, samps) - self.ts)
+        print('AudioData: regression fit errors (abs): mean %f, median %f, max %f' % (errs.mean(), numpy.median(errs), errs.max()))
+        
+        # parse the raw audio data
+        audio = numpy.zeros((self.nchan, nsamp))
+        
+        # NOTE: assuming the raw audio is interleaved
+        for i in range(0, nsamp*self.nchan):
+            samp_val, = struct.unpack('h', self.raw_audio[i*_BYTES_PER_SAMPLE : (i+1)*_BYTES_PER_SAMPLE])
+            audio[i % self.nchan, i // self.nchan] = samp_val
+        
+        return audio, audio_ts
         
         
 class VideoData:
