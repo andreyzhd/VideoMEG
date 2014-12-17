@@ -20,7 +20,9 @@ import time
 import math
 import numpy
 
-_BYTES_PER_SAMPLE = 2
+_BYTES_PER_SAMPLE = 2   # for the audio data
+_DECODING_FORMAT = 'h'  # for the audio data
+_REGR_SEGM_LENGTH = 20  # seconds, should be integer
 
 class UnknownVersionError(Exception):
     pass
@@ -122,26 +124,39 @@ class AudioData:
             
         Caution: this function consumes a lot of memory!
         """
-        
-        # compute timestamps for all the audio samples
+        #------------------------------------------------------------------
+        # Compute timestamps for all the audio samples
+        #
         n_chunks = len(self.ts)
         samp_per_buf = self.buf_sz / (self.nchan * _BYTES_PER_SAMPLE)
         nsamp = samp_per_buf * n_chunks
-
         samps = numpy.arange(samp_per_buf-1, nsamp, samp_per_buf)
-              
-        p = numpy.polyfit(samps, self.ts, 1)
-        audio_ts = numpy.polyval(p, numpy.arange(nsamp))
         
-        errs = numpy.abs(numpy.polyval(p, samps) - self.ts)
+        errs = -numpy.ones(n_chunks)
+        audio_ts = -numpy.ones(nsamp)
+        
+        # split the data into segments for piecewise linear regression
+        split_indx = range(0, nsamp, _REGR_SEGM_LENGTH * self.srate)
+        split_indx[-1] = nsamp  # the last segment might be up to twice as long as the others
+        
+        for i in range(len(split_indx)-1):
+            sel_indx = numpy.where((samps >= split_indx[i]) & (samps < split_indx[i+1]))                                # select one segment
+            p = numpy.polyfit(samps[sel_indx], self.ts[sel_indx], 1)                                                       # compute the regression coefficients
+            errs[sel_indx] = numpy.abs(numpy.polyval(p, samps[sel_indx]) - self.ts[sel_indx])                           # compute the regression error
+            audio_ts[split_indx[i] : split_indx[i+1]] = numpy.polyval(p, numpy.arange(split_indx[i], split_indx[i+1]))   # compute the timestamps with regression
+
+        assert(audio_ts.min() >= 0) # make sure audio_ts was completely filled
+        assert(errs.min() >= 0)     # make sure errs was completely filled
         print('AudioData: regression fit errors (abs): mean %f, median %f, max %f' % (errs.mean(), numpy.median(errs), errs.max()))
         
-        # parse the raw audio data
+        #------------------------------------------------------------------
+        # Parse the raw audio data
+        #
         audio = numpy.zeros((self.nchan, nsamp))
         
         # NOTE: assuming the raw audio is interleaved
         for i in range(0, nsamp*self.nchan):
-            samp_val, = struct.unpack('h', self.raw_audio[i*_BYTES_PER_SAMPLE : (i+1)*_BYTES_PER_SAMPLE])
+            samp_val, = struct.unpack(_DECODING_FORMAT, self.raw_audio[i*_BYTES_PER_SAMPLE : (i+1)*_BYTES_PER_SAMPLE])
             audio[i % self.nchan, i // self.nchan] = samp_val
         
         return audio, audio_ts
