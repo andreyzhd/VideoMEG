@@ -40,6 +40,7 @@ MEG_CH = 'STI001'
 FRAME_SZ = (640, 480)
 OUT_FLDR = '/tmp'
 WIND_WIDTH = 3  # in frames
+DPI = 80    # used for rendering the traces
 
 # Percentiles to be used for vertical scaling (to avoid problems caused by
 # outlers). Should be a float between 0 and 100
@@ -80,49 +81,41 @@ meg_scale = np.percentile(np.abs(meg), SCALE_PRCTILE_MEG) * 1.1
 aud_scale = np.percentile(np.abs(audio), SCALE_PRCTILE_AUDIO) * 1.1
 
 for i in range(1+WIND_WIDTH, len(vid_file_1.ts)-(1+WIND_WIDTH)):
-    # combine 3 frames from the first video file
+    res = PIL.Image.new('RGB', (FRAME_SZ[0]*3, (FRAME_SZ[1]*2)+(FRAME_SZ[1]*2//3)))
+    
+    #----------------------------------------------------------------------
+    # Paste the frame images into the final figure
+    #
+
+    # paste 3 frames from the first video file
     im0 = PIL.Image.open(cStringIO.StringIO(vid_file_1.get_frame(i-1)))
     im1 = PIL.Image.open(cStringIO.StringIO(vid_file_1.get_frame(i)))
     im2 = PIL.Image.open(cStringIO.StringIO(vid_file_1.get_frame(i+1)))
    
-    res = PIL.Image.new('RGB', (FRAME_SZ[0]*3, FRAME_SZ[1]))
     res.paste(im0, (0,0))
     res.paste(im1, (FRAME_SZ[0],0))
     res.paste(im2, (FRAME_SZ[0]*2,0))
-        
-    plt.figure()
-    
-    # plot the frames
-    plt.subplot(3,1,1)
-    plt.imshow(np.asarray(res))
-    plt.xticks(())
-    plt.yticks(())
     
     # find the closest 3 frames from the second video
     vid2_indx_unsorted = np.argsort(np.abs(vid_file_2.ts - vid_file_1.ts[i]))[0:3]   # find the closest 3 frames
     vid2_indx = vid2_indx_unsorted[np.argsort(vid_file_2.ts[vid2_indx_unsorted])]   # order the 3 frames
     
-    # combine 3 frames from the second video file
+    # paste 3 frames from the second video file
     im0 = PIL.Image.open(cStringIO.StringIO(vid_file_2.get_frame(vid2_indx[0])))
     im1 = PIL.Image.open(cStringIO.StringIO(vid_file_2.get_frame(vid2_indx[1])))
     im2 = PIL.Image.open(cStringIO.StringIO(vid_file_2.get_frame(vid2_indx[2])))
    
-    res = PIL.Image.new('RGB', (FRAME_SZ[0]*3, FRAME_SZ[1]))
-    res.paste(im0, (0,0))
-    res.paste(im1, (FRAME_SZ[0],0))
-    res.paste(im2, (FRAME_SZ[0]*2,0))
+    res.paste(im0, (0, FRAME_SZ[1]+(FRAME_SZ[1]*2//3)))
+    res.paste(im1, (FRAME_SZ[0], FRAME_SZ[1]+(FRAME_SZ[1]*2//3)))
+    res.paste(im2, (FRAME_SZ[0]*2, FRAME_SZ[1]+(FRAME_SZ[1]*2//3)))
     
-    # plot the frames
-    plt.subplot(3,1,3)
-    plt.imshow(np.asarray(res))
-    plt.xticks(())
-    plt.yticks(())
-    
+    #----------------------------------------------------------------------
+    # Render and paste the traces into the final figure
     # plot the traces
     min_ts = vid_file_1.ts[i] - ts_scale
     max_ts = vid_file_1.ts[i] + ts_scale
     
-    plt.subplot(3,1,2)    
+    fig = plt.figure()
     meg_indx = np.where((meg_ts > min_ts) & (meg_ts < max_ts))
     plt.plot(meg_ts[meg_indx], meg[meg_indx] / meg_scale, 'b')
     
@@ -142,6 +135,29 @@ for i in range(1+WIND_WIDTH, len(vid_file_1.ts)-(1+WIND_WIDTH)):
     plt.yticks(())
     plt.xlim((min_ts, max_ts))
     plt.ylim((-1, 1))
+
+    # resize the figure to correct size    
+    fig.set_size_inches(FRAME_SZ[0]*3//DPI, FRAME_SZ[1]*2//3//DPI)
+    fig.set_dpi(DPI)
     
-    plt.savefig('%s/frame-%07.f.png' % (OUT_FLDR, i))
-    plt.close('all')    
+    fig.canvas.draw()
+ 
+    # Get the RGBA buffer from the figure
+    w, h = fig.canvas.get_width_height()
+    #DEBUG
+    print('w = %f, h = %f' % (w, h))
+    #~DEBUG
+    buf = np.fromstring(fig.canvas.tostring_argb(), dtype=np.uint8)
+    buf.shape = (w, h, 4)
+ 
+    # canvas.tostring_argb give pixmap in ARGB mode. Roll the ALPHA channel to have it in RGBA mode
+    buf = np.roll(buf, 3, axis=2)
+    im_trc = PIL.Image.fromstring("RGBA", (w, h), buf.tostring())
+    res.paste(im_trc, (0, FRAME_SZ[1]))
+    
+    plt.close('all')
+
+    res.save('%s/frame-%07.f.png' % (OUT_FLDR, i), 'PNG')
+
+  
+    
