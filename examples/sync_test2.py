@@ -144,9 +144,6 @@ for i in range(1+WIND_WIDTH, len(vid_file_1.ts)-(1+WIND_WIDTH)):
  
     # Get the RGBA buffer from the figure
     w, h = fig.canvas.get_width_height()
-    #DEBUG
-    print('w = %f, h = %f' % (w, h))
-    #~DEBUG
     buf = np.fromstring(fig.canvas.tostring_argb(), dtype=np.uint8)
     buf.shape = (w, h, 4)
  
