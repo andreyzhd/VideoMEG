@@ -116,14 +116,14 @@ void SpeakerThread::stoppableRun()
 	    if (rc == -EPIPE)
 	    {
 	    	/* EPIPE means underrun */
-			cerr << "underrun occurred" << endl;
+            cerr << "underrun occurred" << endl;
 	    	snd_pcm_prepare(sndHandle);
 	    }
 	    else if (rc < 0)
 	    {
 	    	cerr << "error from writei: " << snd_strerror(rc) << endl;
 	    }
-	    else if (rc != settings.framesPerPeriod)
+        else if (rc != (int)settings.framesPerPeriod)
 	    {
 	    	cerr << "short write, write " << rc << " frames" << endl;
 	    }

@@ -42,6 +42,7 @@ class MainDialog : public QMainWindow
 public:
     MainDialog(QWidget *parent = 0);
     ~MainDialog();
+    Settings 			settings;
 
 public slots:
     void onStartRec();
@@ -53,13 +54,13 @@ public slots:
 
 private:
     void initVideo();
+    void setupVideoDialog(unsigned int);
+    void cleanVideoDialog(unsigned int);
 
     Ui::MainDialogClass ui;
 
-    dc1394camera_t*		camera1;
-    dc1394camera_t*		camera2;
-	VideoDialog*		videoDialog1;
-	VideoDialog*		videoDialog2;
+    dc1394camera_t*		cameras[MAX_CAMERAS];
+    VideoDialog*		videoDialogs[MAX_CAMERAS];
 
     MicrophoneThread*	microphoneThread;
     CycDataBuffer*		cycAudioBuf;
@@ -72,7 +73,6 @@ private:
 	int					volIndNext;
 	SpeakerThread*		speakerThread;
 	NonBlockingBuffer*	speakerBuffer;
-	Settings 			settings;
 };
 
 #endif // MAINDIALOG_H

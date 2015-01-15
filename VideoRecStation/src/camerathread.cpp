@@ -22,6 +22,7 @@
 #include <time.h>
 #include <QCoreApplication>
 #include <stdlib.h>
+#include <QTime>
 
 #include "camerathread.h"
 #include "config.h"
@@ -38,6 +39,12 @@ CameraThread::CameraThread(dc1394camera_t* _camera, CycDataBuffer* _cycBuf, bool
     shouldStop = false;
 
     camera = _camera;
+
+    // Dummy mode
+    if (camera == NULL)
+    {
+        return;
+    }
 
     /*-----------------------------------------------------------------------
      *  setup capture
@@ -84,6 +91,10 @@ CameraThread::CameraThread(dc1394camera_t* _camera, CycDataBuffer* _cycBuf, bool
 CameraThread::~CameraThread()
 {
 	dc1394error_t err;
+    if (!camera)
+    {
+        return;
+    }
 
     err = dc1394_capture_stop(camera);
     if (err != DC1394_SUCCESS)
@@ -100,8 +111,40 @@ void CameraThread::stoppableRun()
     dc1394video_frame_t*	frame;
     struct sched_param		sch_param;
 	struct timespec			timestamp;
-	uint64_t				msec;
 	ChunkAttrib				chunkAttrib;
+    unsigned int            chunkSize;
+    unsigned char*          fakeImage;
+    QTime                   time;
+
+    chunkSize = VIDEO_HEIGHT * VIDEO_WIDTH * (color ? 3 : 1);
+    chunkAttrib.chunkSize = chunkSize;
+
+    // Set priority
+    sch_param.sched_priority = CAM_THREAD_PRIORITY;
+    if (sched_setscheduler(0, SCHED_FIFO, &sch_param))
+    {
+        cerr << "Cannot set camera thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems." << endl;
+    }
+
+    /*-----------------------------------------------------------------------
+     *  dummy mode
+     *-----------------------------------------------------------------------*/
+    if (!camera)
+    {
+        fakeImage = new unsigned char[chunkSize];
+        time = QTime::currentTime();
+        while (!shouldStop)
+        {
+            msleep((unsigned long) 1000. / 30.);
+            clock_gettime(CLOCK_REALTIME, &timestamp);
+            chunkAttrib.timestamp = timestamp.tv_nsec / 1000000 + timestamp.tv_sec * 1000;
+            for(unsigned int i=0; i < chunkSize; i++)
+                fakeImage[i] = (unsigned char) qrand();
+            cycBuf->insertChunk(fakeImage, chunkAttrib);
+        }
+        delete fakeImage;
+        return;
+    }
 
     /*-----------------------------------------------------------------------
      *  have the camera start sending us data
@@ -111,13 +154,6 @@ void CameraThread::stoppableRun()
     {
         cerr << "Could not start camera iso transmission" << endl;
         abort();
-    }
-
-    // Set priority
-    sch_param.sched_priority = CAM_THREAD_PRIORITY;
-    if (sched_setscheduler(0, SCHED_FIFO, &sch_param))
-    {
-    	cerr << "Cannot set camera thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems." << endl;
     }
 
     // Start the acquisition loop
@@ -132,11 +168,7 @@ void CameraThread::stoppableRun()
             abort();
         }
 
-		msec = timestamp.tv_nsec / 1000000;
-		msec += timestamp.tv_sec * 1000;
-
-		chunkAttrib.chunkSize = VIDEO_HEIGHT * VIDEO_WIDTH * (color ? 3 : 1);
-		chunkAttrib.timestamp = msec;
+        chunkAttrib.timestamp = timestamp.tv_nsec / 1000000 + timestamp.tv_sec * 1000;
 		cycBuf->insertChunk(frame->image, chunkAttrib);
 
         err = dc1394_capture_enqueue(camera, frame);

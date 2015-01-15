@@ -70,6 +70,8 @@ MainDialog::MainDialog(QWidget *parent)
     {
     	speakerThread->start();
     }
+    if (settings.controllerRect.isValid())
+        this->setGeometry(settings.controllerRect);
 }
 
 
@@ -90,12 +92,12 @@ void MainDialog::onStartRec()
 
     if(ui.cam1CheckBox->checkState() == Qt::Checked)
     {
-    	videoDialog1->setIsRec(true);
+        videoDialogs[0]->setIsRec(true);
     }
 
     if(ui.cam2CheckBox->checkState() == Qt::Checked)
     {
-    	videoDialog2->setIsRec(true);
+        videoDialogs[1]->setIsRec(true);
     }
 
     cycAudioBuf->setIsRec(true);
@@ -108,20 +110,45 @@ void MainDialog::onStopRec()
     ui.startButton->setEnabled(true);
     ui.exitButton->setEnabled(true);
 
-    ui.cam1CheckBox->setEnabled(camera1 != NULL);
-    ui.cam2CheckBox->setEnabled(camera2 != NULL);
+    ui.cam1CheckBox->setEnabled(cameras[0] != NULL || settings.dummyMode);
+    ui.cam2CheckBox->setEnabled(cameras[1] != NULL || settings.dummyMode);
 
     if(ui.cam1CheckBox->checkState() == Qt::Checked)
     {
-    	videoDialog1->setIsRec(false);
+        videoDialogs[0]->setIsRec(false);
     }
 
     if(ui.cam2CheckBox->checkState() == Qt::Checked)
     {
-    	videoDialog2->setIsRec(false);
+        videoDialogs[1]->setIsRec(false);
     }
 
     cycAudioBuf->setIsRec(false);
+}
+
+
+void MainDialog::setupVideoDialog(unsigned int idx)
+{
+    videoDialogs[idx] = new VideoDialog(cameras[idx], 2);
+    if(settings.videoRects[idx].isValid())
+        videoDialogs[idx]->setGeometry(settings.videoRects[idx]);
+    videoDialogs[idx]->findChild<QSlider*>("shutterSlider")->setValue(settings.videoShutters[idx]);
+    videoDialogs[idx]->findChild<QSlider*>("gainSlider")->setValue(settings.videoGains[idx]);
+    videoDialogs[idx]->findChild<QSlider*>("uvSlider")->setValue(settings.videoUVs[idx]);
+    videoDialogs[idx]->findChild<QSlider*>("vrSlider")->setValue(settings.videoVRs[idx]);
+    videoDialogs[idx]->show();
+}
+
+
+void MainDialog::cleanVideoDialog(unsigned int idx)
+{
+    videoDialogs[idx]->stopThreads();
+    settings.videoRects[idx] = videoDialogs[idx]->geometry();
+    settings.videoShutters[idx] = videoDialogs[idx]->findChild<QSlider*>("shutterSlider")->value();
+    settings.videoGains[idx] = videoDialogs[idx]->findChild<QSlider*>("gainSlider")->value();
+    settings.videoUVs[idx] = videoDialogs[idx]->findChild<QSlider*>("uvSlider")->value();
+    settings.videoVRs[idx] = videoDialogs[idx]->findChild<QSlider*>("vrSlider")->value();
+    delete videoDialogs[idx];
 }
 
 
@@ -129,16 +156,13 @@ void MainDialog::onExit()
 {
     if(ui.cam1CheckBox->checkState() == Qt::Checked)
     {
-		videoDialog1->stopThreads();
-		delete videoDialog1;
+        this->cleanVideoDialog(0);
     }
-
     if(ui.cam2CheckBox->checkState() == Qt::Checked)
     {
-		videoDialog2->stopThreads();
-		delete videoDialog2;
+        this->cleanVideoDialog(1);
     }
-
+    settings.controllerRect = this->geometry();
     close();
 }
 
@@ -207,8 +231,15 @@ void MainDialog::initVideo()
         abort();
     }
 
-    camera1 = NULL;
-    camera2 = NULL;
+    for (unsigned int i=0; i < MAX_CAMERAS; i++)
+        cameras[i] = NULL;
+
+    if (settings.dummyMode)
+    {
+        ui.cam1CheckBox->setEnabled(true);
+        ui.cam2CheckBox->setEnabled(true);
+        return;
+    }
 
     if (camList->num == 0)
     {
@@ -217,43 +248,38 @@ void MainDialog::initVideo()
     }
 
     // use the first camera in the list
-    camera1 = dc1394_camera_new(dc1394Context, camList->ids[0].guid);
-    if (!camera1)
+    for (unsigned int i=0; i < MAX_CAMERAS; i++)
     {
-        cerr << "Failed to initialize camera with guid " << camList->ids[0].guid << endl;
-        abort();
+        if (camList->num > i)
+        {
+            cameras[i] = dc1394_camera_new(dc1394Context, camList->ids[i].guid);
+            if (!cameras[i])
+            {
+                cerr << "Failed to initialize camera with guid " << camList->ids[0].guid << endl;
+                abort();
+            }
+            cout << "Using camera with GUID " << cameras[0]->guid << endl;
+            // XXX right now this only support two :(
+            if (i == 0)
+                ui.cam1CheckBox->setEnabled(true);
+            else
+                ui.cam2CheckBox->setEnabled(true);
+        }
     }
-    cout << "Using camera with GUID " << camera1->guid << endl;
-    ui.cam1CheckBox->setEnabled(true);
-
-    // use the second camera in the list
-    if(camList->num > 1)
-    {
-    	camera2 = dc1394_camera_new(dc1394Context, camList->ids[1].guid);
-    	if(!camera2)
-    	{
-    		cerr << "Failed to initialize camera with guid " << camList->ids[1].guid << endl;
-    		abort();
-    	}
-    	cout << "Using camera with GUID " << camera2->guid << endl;
-    	ui.cam2CheckBox->setEnabled(true);
-    }
-
     dc1394_camera_free_list(camList);
 }
 
 
 void MainDialog::onCam1Toggled(bool _state)
 {
+
 	if(_state)
 	{
-		videoDialog1 = new VideoDialog(camera1, 1);
-		videoDialog1->show();
+        this->setupVideoDialog(0);
 	}
 	else
 	{
-		videoDialog1->stopThreads();
-		delete videoDialog1;
+        this->cleanVideoDialog(0);
 	}
 }
 
@@ -262,12 +288,10 @@ void MainDialog::onCam2Toggled(bool _state)
 {
 	if(_state)
 	{
-		videoDialog2 = new VideoDialog(camera2, 2);
-		videoDialog2->show();
-	}
+        this->setupVideoDialog(1);
+    }
 	else
 	{
-		videoDialog2->stopThreads();
-		delete videoDialog2;
+        this->cleanVideoDialog(1);
 	}
 }
