@@ -1,0 +1,15 @@
+*.c
+*.so
+*.pyc
+*.pyo
+*.DS_Store
+doc/_build
+/_website
+/_gh-pages
+/_images
+build
+dist
+MANIFEST
+.coverage*
+htmlcov
+pyvideomeg.egg-info
