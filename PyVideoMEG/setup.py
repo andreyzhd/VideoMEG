@@ -33,7 +33,7 @@ setup(
     version=__version__,
     author='VideoMEG contributors',
     author_email='andrey.zhdanov@aalto.fi',
-    license='LGPL',
+    license='GPL v3',
     url='http://github.com/andreyzhd/VideoMEG',
     keywords="medical imaging",
     description=description,
