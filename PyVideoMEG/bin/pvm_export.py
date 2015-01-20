@@ -150,9 +150,3 @@ os.system(cmd)
 # Clean up
 #
 shutil.rmtree(tmp_fldr)
-del(vid_file)
-
-
-
-
-

@@ -1,8 +1,8 @@
 [Desktop Entry]
 Version=1.0
-Name=pvm_export_dragdrop
-Comment=Convert video recorded during MEG experiments
-Exec=pvm_export_dragdrop.py
+Name=pvm_to_mpeg
+Comment=Convert video to mpeg2
+Exec=pvm_to_mpeg.py
 Terminal=False
 Type=Application
 Icon=applications-science
