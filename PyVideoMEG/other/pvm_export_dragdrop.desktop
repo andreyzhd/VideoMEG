@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=pvm_export_dragdrop
+Comment=Convert video recorded during MEG experiments
+Exec=pvm_export_dragdrop.py
+Terminal=True
+Type=Application
+Icon=applications-science
+Categories=Science;Application;
