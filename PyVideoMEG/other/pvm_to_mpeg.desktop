@@ -1,9 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Name=pvm_to_mpeg
-Comment=Convert video to mpeg2
-Exec=pvm_to_mpeg.py
-Terminal=False
-Type=Application
-Icon=applications-science
-Categories=Science;Application;
