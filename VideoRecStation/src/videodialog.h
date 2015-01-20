@@ -55,7 +55,7 @@ public slots:
 private:
     Ui::VideoDialogClass ui;
 
-    unsigned int            cameraId;
+    unsigned int            cameraIdx;
     dc1394camera_t*			camera;
     CameraThread*       	cameraThread;
     CycDataBuffer*			cycVideoBufRaw;

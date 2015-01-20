@@ -26,16 +26,16 @@
 
 using namespace std;
 
-VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraId, QWidget *parent)
+VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *parent)
     : QDialog(parent)
 {
 	char		winCaption[500];
     Settings	settings;
-    cameraId = _cameraId;
+    cameraIdx = _cameraIdx;
 
 	ui.setupUi(this);
 	setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint| Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint);
-    sprintf(winCaption, "Camera %i", cameraId);
+    sprintf(winCaption, "Camera %i", cameraIdx + 1);
 	setWindowTitle(winCaption);
 	camera = _camera;
 
@@ -43,7 +43,7 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraId, QWidget *parent
 	cycVideoBufRaw = new CycDataBuffer(CIRC_VIDEO_BUFF_SZ);
 	cycVideoBufJpeg = new CycDataBuffer(CIRC_VIDEO_BUFF_SZ);
     cameraThread = new CameraThread(camera, cycVideoBufRaw, settings.color);
-    videoFileWriter = new VideoFileWriter(cycVideoBufJpeg, settings.storagePath, cameraId);
+    videoFileWriter = new VideoFileWriter(cycVideoBufJpeg, settings.storagePath, cameraIdx + 1);
 	videoCompressorThread = new VideoCompressorThread(cycVideoBufRaw, cycVideoBufJpeg, settings.color, settings.jpgQuality);
 
     QObject::connect(cycVideoBufJpeg, SIGNAL(chunkReady(unsigned char*)), ui.videoWidget, SLOT(onDrawFrame(unsigned char*)));
@@ -51,19 +51,19 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraId, QWidget *parent
 	// Setup gain/shutter sliders
     ui.shutterSlider->setMinimum(SHUTTER_MIN_VAL);
     ui.shutterSlider->setMaximum(SHUTTER_MAX_VAL);
-    ui.shutterSlider->setValue(settings.videoShutters[cameraId-1]);
+    ui.shutterSlider->setValue(settings.videoShutters[cameraIdx]);
 
     ui.gainSlider->setMinimum(GAIN_MIN_VAL);
     ui.gainSlider->setMaximum(GAIN_MAX_VAL);
-    ui.gainSlider->setValue(settings.videoGains[cameraId-1]);
+    ui.gainSlider->setValue(settings.videoGains[cameraIdx]);
 
     ui.uvSlider->setMinimum(UV_MIN_VAL);
     ui.uvSlider->setMaximum(UV_MAX_VAL);
-    ui.uvSlider->setValue(settings.videoUVs[cameraId-1]);
+    ui.uvSlider->setValue(settings.videoUVs[cameraIdx]);
 
     ui.vrSlider->setMinimum(VR_MIN_VAL);
     ui.vrSlider->setMaximum(VR_MAX_VAL);
-    ui.vrSlider->setValue(settings.videoVRs[cameraId-1]);
+    ui.vrSlider->setValue(settings.videoVRs[cameraIdx]);
 
     ui.uvSlider->setEnabled(settings.color);
     ui.vrSlider->setEnabled(settings.color);
@@ -104,7 +104,7 @@ void VideoDialog::onShutterChanged(int _newVal)
 	dc1394error_t	err;
 
     Settings settings;
-    settings.videoShutters[cameraId-1] = _newVal;
+    settings.videoShutters[cameraIdx] = _newVal;
     if (!cameraThread || !camera)
 	{
 		return;
@@ -125,7 +125,7 @@ void VideoDialog::onGainChanged(int _newVal)
 	dc1394error_t	err;
 
     Settings settings;
-    settings.videoGains[cameraId-1] = _newVal;
+    settings.videoGains[cameraIdx] = _newVal;
     if (!cameraThread || !camera)
 	{
 		return;

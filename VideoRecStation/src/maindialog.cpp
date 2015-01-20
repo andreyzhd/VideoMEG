@@ -129,7 +129,7 @@ void MainDialog::onStopRec()
 
 void MainDialog::setupVideoDialog(unsigned int idx)
 {
-    videoDialogs[idx] = new VideoDialog(cameras[idx], 2);
+    videoDialogs[idx] = new VideoDialog(cameras[idx], idx);
     if(settings.videoRects[idx].isValid())
         videoDialogs[idx]->setGeometry(settings.videoRects[idx]);
     videoDialogs[idx]->findChild<QSlider*>("shutterSlider")->setValue(settings.videoShutters[idx]);
