@@ -24,22 +24,22 @@
 
 class NonBlockingBuffer {
 public:
-	NonBlockingBuffer(int _bufSize, long _chunkSize);
-	virtual ~NonBlockingBuffer();
-	void insertChunk(void* _data);
+    NonBlockingBuffer(int _bufSize, long _chunkSize);
+    virtual ~NonBlockingBuffer();
+    void insertChunk(void* _data);
 
-	// Acquire a chunk and return a pointer to it. The chunk is implicitly
-	// released next time getChunk is called.
-	void* getChunk();
+    // Acquire a chunk and return a pointer to it. The chunk is implicitly
+    // released next time getChunk is called.
+    void* getChunk();
 
 private:
-	QMutex*	buffMutex;
-    char*	dataBuf;
-    char*	zeroChunk;
-	int		bufSize;
-	long	chunkSize;
-	int		insertPtr;
-	int		getPtr;
+    QMutex* buffMutex;
+    char*   dataBuf;
+    char*   zeroChunk;
+    int     bufSize;
+    long    chunkSize;
+    int     insertPtr;
+    int     getPtr;
 };
 
 #endif /* NONBLOCKINGBUFFER_H_ */

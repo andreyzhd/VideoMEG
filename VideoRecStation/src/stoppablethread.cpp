@@ -27,33 +27,33 @@ int StoppableThread::nextId = 0;
 
 StoppableThread::StoppableThread()
 {
-	id = nextId++;
-	shouldStop = false;
+    id = nextId++;
+    shouldStop = false;
 
-	clog << "StoppableThread no. " << id << " is created" << endl;
+    clog << "StoppableThread no. " << id << " is created" << endl;
 }
 
 
 StoppableThread::~StoppableThread()
 {
-	clog << "StoppableThread no. " << id << " is destroyed" << endl;
+    clog << "StoppableThread no. " << id << " is destroyed" << endl;
 }
 
 
 void StoppableThread::run()
 {
-	clog << "Running StoppableThread no. " << id << " ..." << endl;
-	stoppableRun();
+    clog << "Running StoppableThread no. " << id << " ..." << endl;
+    stoppableRun();
 }
 
 
 void StoppableThread::stop()
 {
-	clog << "Stopping StoppableThread no. " << id << " ...";
+    clog << "Stopping StoppableThread no. " << id << " ...";
 
-	shouldStop = true;
-	this->wait();
+    shouldStop = true;
+    this->wait();
 
-	clog << " done" << endl;
+    clog << " done" << endl;
 }
 

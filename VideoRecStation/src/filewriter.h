@@ -42,19 +42,19 @@
 class FileWriter : public StoppableThread
 {
 protected:
-	FileWriter(CycDataBuffer* _cycBuf, const char* _path, const char* _suffix, const char* _ext, int _streamId);
-	virtual ~FileWriter();
-	virtual void stoppableRun();
+    FileWriter(CycDataBuffer* _cycBuf, const char* _path, const char* _suffix, const char* _ext, int _streamId);
+    virtual ~FileWriter();
+    virtual void stoppableRun();
 
-	//! Return the header to be written at the beginning of the file.
-	virtual unsigned char* getHeader(int* _len) = 0;
+    //! Return the header to be written at the beginning of the file.
+    virtual unsigned char* getHeader(int* _len) = 0;
 
 private:
-	CycDataBuffer*	cycBuf;
-	char*			path;
-	char*			suffix;
-	char*			ext;
-	int				streamId;
+    CycDataBuffer*  cycBuf;
+    char*           path;
+    char*           suffix;
+    char*           ext;
+    int             streamId;
 };
 
 #endif /* FILEWRITER_H_ */

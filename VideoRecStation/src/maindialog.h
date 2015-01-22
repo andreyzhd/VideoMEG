@@ -42,7 +42,7 @@ class MainDialog : public QMainWindow
 public:
     MainDialog(QWidget *parent = 0);
     ~MainDialog();
-    Settings 			settings;
+    Settings            settings;
 
 public slots:
     void onStartRec();
@@ -59,20 +59,20 @@ private:
 
     Ui::MainDialogClass ui;
 
-    dc1394camera_t*		cameras[MAX_CAMERAS];
-    VideoDialog*		videoDialogs[MAX_CAMERAS];
+    dc1394camera_t*     cameras[MAX_CAMERAS];
+    VideoDialog*        videoDialogs[MAX_CAMERAS];
 
-    MicrophoneThread*	microphoneThread;
-    CycDataBuffer*		cycAudioBuf;
-    AudioFileWriter*	audioFileWriter;
+    MicrophoneThread*   microphoneThread;
+    CycDataBuffer*      cycAudioBuf;
+    AudioFileWriter*    audioFileWriter;
 
     // Data structures for volume indicator. volMaxvals is a cyclic buffer
     // that stores maximal values for the last N_BUF_4_VOL_IND periods for
     // all channels in an interleaved fashion.
-	AUDIO_DATA_TYPE		volMaxvals[N_CHANS * N_BUF_4_VOL_IND];
-	int					volIndNext;
-	SpeakerThread*		speakerThread;
-	NonBlockingBuffer*	speakerBuffer;
+    AUDIO_DATA_TYPE     volMaxvals[N_CHANS * N_BUF_4_VOL_IND];
+    int                 volIndNext;
+    SpeakerThread*      speakerThread;
+    NonBlockingBuffer*  speakerBuffer;
 };
 
 #endif // MAINDIALOG_H

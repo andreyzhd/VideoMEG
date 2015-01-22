@@ -29,16 +29,16 @@
 class CameraThread : public StoppableThread
 {
 public:
-	CameraThread(dc1394camera_t* _camera, CycDataBuffer* _cycBuf, bool _color);
-	virtual ~CameraThread();
+    CameraThread(dc1394camera_t* _camera, CycDataBuffer* _cycBuf, bool _color);
+    virtual ~CameraThread();
 
 protected:
-	virtual void stoppableRun();
+    virtual void stoppableRun();
 
 private:
-    dc1394camera_t*	camera;
-    CycDataBuffer*	cycBuf;
-    bool			color;
+    dc1394camera_t* camera;
+    CycDataBuffer*  cycBuf;
+    bool            color;
 };
 
 #endif /* CAMERATHREAD_H_ */

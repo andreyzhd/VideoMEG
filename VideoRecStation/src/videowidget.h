@@ -29,13 +29,14 @@ class VideoWidget : public QLabel
 public:
     VideoWidget(QWidget* parent=0);
     //int heightForWidth(int _w);
-	volatile bool rotate;
+    volatile bool rotate;
+    volatile bool limitDisplaySize;
 
 public slots:
     void onDrawFrame(unsigned char* _jpegBuf);
 
 private:
-	char*		imBuf;
+    char*       imBuf;
 };
 
 #endif /* VIDEOWIDGET_H_ */

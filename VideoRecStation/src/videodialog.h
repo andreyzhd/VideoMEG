@@ -44,6 +44,7 @@ public slots:
     void onUVChanged(int _newVal);
     void onVRChanged(int _newVal);
     void onNewFrame(unsigned char* _jpegBuf);
+    void onLdsBoxToggled(bool _checked);
 
     //! Stop all the threads associated with the dialog.
     /*!
@@ -57,12 +58,12 @@ private:
     Ui::VideoDialogClass ui;
 
     unsigned int            cameraIdx;
-    dc1394camera_t*			camera;
-    CameraThread*       	cameraThread;
-    CycDataBuffer*			cycVideoBufRaw;
-    CycDataBuffer*			cycVideoBufJpeg;
-    VideoFileWriter*		videoFileWriter;
-    VideoCompressorThread*	videoCompressorThread;
+    dc1394camera_t*         camera;
+    CameraThread*           cameraThread;
+    CycDataBuffer*          cycVideoBufRaw;
+    CycDataBuffer*          cycVideoBufJpeg;
+    VideoFileWriter*        videoFileWriter;
+    VideoCompressorThread*  videoCompressorThread;
 
     // These variables are used for showing the FPS
     u_int64_t               prevFrameTstamp=0;

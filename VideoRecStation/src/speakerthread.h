@@ -32,16 +32,16 @@
 class SpeakerThread : public StoppableThread
 {
 public:
-	SpeakerThread(NonBlockingBuffer* _buffer);
-	virtual ~SpeakerThread();
+    SpeakerThread(NonBlockingBuffer* _buffer);
+    virtual ~SpeakerThread();
 
 protected:
-	virtual void stoppableRun();
+    virtual void stoppableRun();
 
 private:
-	snd_pcm_t*			sndHandle;
-	NonBlockingBuffer*	buffer;
-	Settings			settings;
+    snd_pcm_t*          sndHandle;
+    NonBlockingBuffer*  buffer;
+    Settings            settings;
 };
 
 #endif /* SPEAKERTHREAD_H_ */

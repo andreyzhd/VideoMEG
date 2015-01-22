@@ -25,15 +25,15 @@
 class AudioFileWriter : public FileWriter
 {
 public:
-	AudioFileWriter(CycDataBuffer* _cycBuf, const char* _path);
-	virtual ~AudioFileWriter();
+    AudioFileWriter(CycDataBuffer* _cycBuf, const char* _path);
+    virtual ~AudioFileWriter();
 
 protected:
-	virtual unsigned char* getHeader(int* _len);
+    virtual unsigned char* getHeader(int* _len);
 
 private:
-	int				bufLen;
-	unsigned char*	buf;
+    int             bufLen;
+    unsigned char*  buf;
 };
 
 #endif /* AUDIOFILEWRITER_H_ */

@@ -90,7 +90,7 @@ CameraThread::CameraThread(dc1394camera_t* _camera, CycDataBuffer* _cycBuf, bool
 
 CameraThread::~CameraThread()
 {
-	dc1394error_t err;
+    dc1394error_t err;
     if (!camera)
     {
         return;
@@ -107,11 +107,11 @@ CameraThread::~CameraThread()
 
 void CameraThread::stoppableRun()
 {
-    dc1394error_t			err;
-    dc1394video_frame_t*	frame;
-    struct sched_param		sch_param;
-	struct timespec			timestamp;
-	ChunkAttrib				chunkAttrib;
+    dc1394error_t           err;
+    dc1394video_frame_t*    frame;
+    struct sched_param      sch_param;
+    struct timespec         timestamp;
+    ChunkAttrib             chunkAttrib;
     unsigned int            chunkSize;
     unsigned char*          fakeImage;
     QTime                   time;
@@ -135,7 +135,7 @@ void CameraThread::stoppableRun()
         time = QTime::currentTime();
         while (!shouldStop)
         {
-            msleep((unsigned long) 1000. / 30.);
+            msleep(33);
             clock_gettime(CLOCK_REALTIME, &timestamp);
             chunkAttrib.timestamp = timestamp.tv_nsec / 1000000 + timestamp.tv_sec * 1000;
             for(unsigned int i=0; i < chunkSize; i++)
@@ -160,7 +160,7 @@ void CameraThread::stoppableRun()
     while (!shouldStop)
     {
         err = dc1394_capture_dequeue(camera, DC1394_CAPTURE_POLICY_WAIT, &frame);
-		clock_gettime(CLOCK_REALTIME, &timestamp);
+        clock_gettime(CLOCK_REALTIME, &timestamp);
 
         if (err != DC1394_SUCCESS)
         {
@@ -169,7 +169,7 @@ void CameraThread::stoppableRun()
         }
 
         chunkAttrib.timestamp = timestamp.tv_nsec / 1000000 + timestamp.tv_sec * 1000;
-		cycBuf->insertChunk(frame->image, chunkAttrib);
+        cycBuf->insertChunk(frame->image, chunkAttrib);
 
         err = dc1394_capture_enqueue(camera, frame);
         if (err != DC1394_SUCCESS)

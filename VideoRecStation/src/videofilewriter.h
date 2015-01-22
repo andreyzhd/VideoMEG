@@ -25,15 +25,15 @@
 class VideoFileWriter : public FileWriter
 {
 public:
-	VideoFileWriter(CycDataBuffer* _cycBuf, const char* _path, int _camId);
-	virtual ~VideoFileWriter();
+    VideoFileWriter(CycDataBuffer* _cycBuf, const char* _path, int _camId);
+    virtual ~VideoFileWriter();
 
 protected:
-	virtual unsigned char* getHeader(int* _len);
+    virtual unsigned char* getHeader(int* _len);
 
 private:
-	int				bufLen;
-	unsigned char*	buf;
+    int             bufLen;
+    unsigned char*  buf;
 };
 
 #endif /* VIDEOFILEWRITER_H_ */

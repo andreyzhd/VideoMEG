@@ -34,34 +34,35 @@
  * thread-safe (CURRENTLY IT IS NOT).
  */
 class Settings {
-	// TODO: make member variables immutable as much as possible
-	// TODO: make the class thread-safe
-	// TODO: implement singleton pattern?
+    // TODO: make member variables immutable as much as possible
+    // TODO: make the class thread-safe
+    // TODO: implement singleton pattern?
 public:
-	Settings();
+    Settings();
     ~Settings();
 
-	// video
-	int				jpgQuality;
-	bool			color;
+    // video
+    int             jpgQuality;
+    bool            color;
 
-	// audio
-	unsigned int	sampRate;
-	unsigned int	framesPerPeriod;
-	unsigned int	nPeriods;
-	unsigned int	spkBufSz;
-    char			inpAudioDev[500];
-    char			outAudioDev[500];
-	bool			useFeedback;
+    // audio
+    unsigned int    sampRate;
+    unsigned int    framesPerPeriod;
+    unsigned int    nPeriods;
+    unsigned int    spkBufSz;
+    QString         inpAudioDev;
+    QString         outAudioDev;
+    bool            useFeedback;
     QRect           controllerRect;
     QRect           videoRects[MAX_CAMERAS];
     unsigned int    videoShutters[MAX_CAMERAS];
     unsigned int    videoGains[MAX_CAMERAS];
     unsigned int    videoUVs[MAX_CAMERAS];
     unsigned int    videoVRs[MAX_CAMERAS];
+    bool            videoLimits[MAX_CAMERAS];
 
-	// misc
-    char			storagePath[500];
+    // misc
+    QString         storagePath;
     bool            dummyMode;
 };
 

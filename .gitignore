@@ -13,3 +13,10 @@ MANIFEST
 .coverage*
 htmlcov
 pyvideomeg.egg-info
+
+# files related to building the project
+*.o
+*.pro.user
+moc_*.cpp
+ui_*.h
+VideoRecStation/Release/Makefile

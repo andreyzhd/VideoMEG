@@ -26,14 +26,14 @@
 
 Settings::Settings()
 {
-	QSettings settings(ORG_NAME, APP_NAME);
+    QSettings settings(ORG_NAME, APP_NAME);
 
 
-	//---------------------------------------------------------------------
-	// Video settings
-	//
+    //---------------------------------------------------------------------
+    // Video settings
+    //
 
-	// JPEG quality
+    // JPEG quality
     jpgQuality = settings.value("video/jpeg_quality", 80).toInt();
 
     // Use color mode
@@ -47,40 +47,41 @@ Settings::Settings()
         videoUVs[i] = settings.value(QString("video/camera_%1_UV").arg(i+1), UV_MIN_VAL).toUInt();
         videoVRs[i] = settings.value(QString("video/camera_%1_VR").arg(i+1), VR_MIN_VAL).toUInt();
         videoRects[i] = settings.value(QString("control/viewer_%1_window").arg(i+1), QRect(-1, -1, -1, -1)).toRect();
+        videoLimits[i] = settings.value(QString("control/viewer_%1_limit_display_size").arg(i+1), false).toBool();
     }
 
     // Window pos and size
     controllerRect = settings.value("control/controller_window", QRect(-1, -1, -1, -1)).toRect();
 
-	//---------------------------------------------------------------------
-	// Audio settings
-	//
+    //---------------------------------------------------------------------
+    // Audio settings
+    //
 
-	// Sampling rate
+    // Sampling rate
     sampRate = settings.value("audio/sampling_rate", 44100).toInt();
 
-	// Frames per period
+    // Frames per period
     framesPerPeriod = settings.value("audio/frames_per_period", 940).toInt();
 
-	// Number of periods
+    // Number of periods
     nPeriods = settings.value("audio/num_periods", 10).toInt();
 
-	// Enable/disable speaker feedback
+    // Enable/disable speaker feedback
     useFeedback = settings.value("audio/use_speaker_feedback", true).toBool();
 
-	// Speaker buffer size (in frames)
+    // Speaker buffer size (in frames)
     spkBufSz = settings.value("audio/speaker_buffer_size", 4).toInt();
 
     // Input/output audio devices
-    sprintf(inpAudioDev, settings.value("audio/input_audio_device", "default").toString().toLocal8Bit().data());
-    sprintf(outAudioDev, settings.value("audio/output_audio_device", "default").toString().toLocal8Bit().data());
+    inpAudioDev = settings.value("audio/input_audio_device", "default").toString();
+    outAudioDev = settings.value("audio/output_audio_device", "default").toString();
 
-	//---------------------------------------------------------------------
-	// Misc settings
-	//
+    //---------------------------------------------------------------------
+    // Misc settings
+    //
 
-	// Data storage folder
-    sprintf(storagePath, settings.value("misc/data_storage_path", "/videodat").toString().toLocal8Bit().data());
+    // Data storage folder
+    storagePath = settings.value("misc/data_storage_path", "/videodat").toString();
 
     // Camera dummy mode
     dummyMode = settings.value("misc/dummy_mode", false).toBool();
@@ -99,6 +100,7 @@ Settings::~Settings()
         settings.setValue(QString("video/camera_%1_UV").arg(i+1), videoUVs[i]);
         settings.setValue(QString("video/camera_%1_VR").arg(i+1), videoVRs[i]);
         settings.setValue(QString("control/viewer_%1_window").arg(i+1), videoRects[i]);
+        settings.setValue(QString("control/viewer_%1_limit_display_size").arg(i+1), videoLimits[i]);
     }
     settings.setValue("control/controller_window", controllerRect);
 

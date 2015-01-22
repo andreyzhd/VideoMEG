@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <math.h>
+#include <QObject>
 
 #include "config.h"
 #include "videowidget.h"
@@ -30,22 +31,29 @@ using namespace std;
 VideoWidget::VideoWidget(QWidget* parent)
     : QLabel(parent)
 {
-	rotate = false;
+    rotate = false;
+    limitDisplaySize = false;
 }
 
 
 void VideoWidget::onDrawFrame(unsigned char* _jpegBuf)
 {
-	ChunkAttrib chunkAttrib;
+    ChunkAttrib chunkAttrib;
     QPixmap     pixMap;
     QTransform  transform;
     QTransform  trans = transform.rotate(rotate ? 180 : 0);
+    int width = this->width();
+    int height = this->height();
 
-	chunkAttrib = *((ChunkAttrib*)(_jpegBuf-sizeof(ChunkAttrib)));
+    if (limitDisplaySize)
+    {
+        width = min(width, VIDEO_WIDTH);
+        height = min(height, VIDEO_HEIGHT);
+    }
+    chunkAttrib = *((ChunkAttrib*)(_jpegBuf-sizeof(ChunkAttrib)));
 
     pixMap.loadFromData(_jpegBuf, chunkAttrib.chunkSize);
 
     // before displaying, scale the pixmap to preserve the aspect ratio
-    this->setPixmap(pixMap.scaled(this->width(), this->height(), Qt::KeepAspectRatio).transformed(trans));
+    this->setPixmap(pixMap.scaled(width, height, Qt::KeepAspectRatio).transformed(trans));
 }
-

@@ -29,42 +29,37 @@ using namespace std;
 VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *parent)
     : QDialog(parent)
 {
-	char		winCaption[500];
-    Settings	settings;
+    Settings    settings;
     cameraIdx = _cameraIdx;
 
-	ui.setupUi(this);
-	setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint| Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint);
-    sprintf(winCaption, "Camera %i", cameraIdx + 1);
-	setWindowTitle(winCaption);
-	camera = _camera;
+    ui.setupUi(this);
+    ui.videoWidget->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint| Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint);
+    setWindowTitle(QString("Camera %1").arg(cameraIdx + 1));
+    camera = _camera;
 
-	// Set up video recording
-	cycVideoBufRaw = new CycDataBuffer(CIRC_VIDEO_BUFF_SZ);
-	cycVideoBufJpeg = new CycDataBuffer(CIRC_VIDEO_BUFF_SZ);
+    // Set up video recording
+    cycVideoBufRaw = new CycDataBuffer(CIRC_VIDEO_BUFF_SZ);
+    cycVideoBufJpeg = new CycDataBuffer(CIRC_VIDEO_BUFF_SZ);
     cameraThread = new CameraThread(camera, cycVideoBufRaw, settings.color);
-    videoFileWriter = new VideoFileWriter(cycVideoBufJpeg, settings.storagePath, cameraIdx + 1);
-	videoCompressorThread = new VideoCompressorThread(cycVideoBufRaw, cycVideoBufJpeg, settings.color, settings.jpgQuality);
+    videoFileWriter = new VideoFileWriter(cycVideoBufJpeg, settings.storagePath.toLocal8Bit().data(), cameraIdx + 1);
+    videoCompressorThread = new VideoCompressorThread(cycVideoBufRaw, cycVideoBufJpeg, settings.color, settings.jpgQuality);
 
     QObject::connect(cycVideoBufJpeg, SIGNAL(chunkReady(unsigned char*)), ui.videoWidget, SLOT(onDrawFrame(unsigned char*)));
     QObject::connect(cycVideoBufJpeg, SIGNAL(chunkReady(unsigned char*)), this, SLOT(onNewFrame(unsigned char*)));
 
-	// Setup gain/shutter sliders
+    // Setup gain/shutter sliders
     ui.shutterSlider->setMinimum(SHUTTER_MIN_VAL);
     ui.shutterSlider->setMaximum(SHUTTER_MAX_VAL);
-    ui.shutterSlider->setValue(settings.videoShutters[cameraIdx]);
 
     ui.gainSlider->setMinimum(GAIN_MIN_VAL);
     ui.gainSlider->setMaximum(GAIN_MAX_VAL);
-    ui.gainSlider->setValue(settings.videoGains[cameraIdx]);
 
     ui.uvSlider->setMinimum(UV_MIN_VAL);
     ui.uvSlider->setMaximum(UV_MAX_VAL);
-    ui.uvSlider->setValue(settings.videoUVs[cameraIdx]);
 
     ui.vrSlider->setMinimum(VR_MIN_VAL);
     ui.vrSlider->setMaximum(VR_MAX_VAL);
-    ui.vrSlider->setValue(settings.videoVRs[cameraIdx]);
 
     ui.uvSlider->setEnabled(settings.color);
     ui.vrSlider->setEnabled(settings.color);
@@ -82,36 +77,34 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *paren
 VideoDialog::~VideoDialog()
 {
     delete cycVideoBufRaw;
-	delete cycVideoBufJpeg;
-	delete cameraThread;
-	delete videoFileWriter;
-	delete videoCompressorThread;
+    delete cycVideoBufJpeg;
+    delete cameraThread;
+    delete videoFileWriter;
+    delete videoCompressorThread;
 }
 
 
 void VideoDialog::stopThreads()
 {
-	// The piece of code stopping the threads should execute fast enough,
-	// otherwise cycVideoBufRaw or cycVideoBufJpeg buffer might overflow. The
-	// order of stopping the threads is important.
-	videoFileWriter->stop();
-	videoCompressorThread->stop();
-	cameraThread->stop();
+    // The piece of code stopping the threads should execute fast enough,
+    // otherwise cycVideoBufRaw or cycVideoBufJpeg buffer might overflow. The
+    // order of stopping the threads is important.
+    videoFileWriter->stop();
+    videoCompressorThread->stop();
+    cameraThread->stop();
 }
 
 
 void VideoDialog::onShutterChanged(int _newVal)
 {
-	dc1394error_t	err;
+    dc1394error_t   err;
 
-    Settings settings;
-    settings.videoShutters[cameraIdx] = _newVal;
     if (!cameraThread || !camera)
-	{
-		return;
-	}
+    {
+        return;
+    }
 
-	err = dc1394_set_register(camera, SHUTTER_ADDR, _newVal + SHUTTER_OFFSET);
+    err = dc1394_set_register(camera, SHUTTER_ADDR, _newVal + SHUTTER_OFFSET);
 
     if (err != DC1394_SUCCESS)
     {
@@ -123,16 +116,14 @@ void VideoDialog::onShutterChanged(int _newVal)
 
 void VideoDialog::onGainChanged(int _newVal)
 {
-	dc1394error_t	err;
+    dc1394error_t   err;
 
-    Settings settings;
-    settings.videoGains[cameraIdx] = _newVal;
     if (!cameraThread || !camera)
-	{
-		return;
-	}
+    {
+        return;
+    }
 
-	err = dc1394_set_register(camera, GAIN_ADDR, _newVal + GAIN_OFFSET);
+    err = dc1394_set_register(camera, GAIN_ADDR, _newVal + GAIN_OFFSET);
 
     if (err != DC1394_SUCCESS)
     {
@@ -144,15 +135,15 @@ void VideoDialog::onGainChanged(int _newVal)
 
 void VideoDialog::onUVChanged(int _newVal)
 {
-	dc1394error_t	err;
+    dc1394error_t   err;
 
     if (!cameraThread || !camera)
-	{
-		return;
-	}
+    {
+        return;
+    }
 
-	// Since UV and VR live in the same register, we need to take care of both
-	err = dc1394_set_register(camera, WHITEBALANCE_ADDR, _newVal * UV_REG_SHIFT + ui.vrSlider->value() + WHITEBALANCE_OFFSET);
+    // Since UV and VR live in the same register, we need to take care of both
+    err = dc1394_set_register(camera, WHITEBALANCE_ADDR, _newVal * UV_REG_SHIFT + ui.vrSlider->value() + WHITEBALANCE_OFFSET);
 
     if (err != DC1394_SUCCESS)
     {
@@ -164,15 +155,15 @@ void VideoDialog::onUVChanged(int _newVal)
 
 void VideoDialog::onVRChanged(int _newVal)
 {
-	dc1394error_t	err;
+    dc1394error_t   err;
 
     if (!cameraThread || !camera)
-	{
-		return;
-	}
+    {
+        return;
+    }
 
-	// Since UV and VR live in the same register, we need to take care of both
-	err = dc1394_set_register(camera, WHITEBALANCE_ADDR, _newVal + UV_REG_SHIFT * ui.uvSlider->value() + WHITEBALANCE_OFFSET);
+    // Since UV and VR live in the same register, we need to take care of both
+    err = dc1394_set_register(camera, WHITEBALANCE_ADDR, _newVal + UV_REG_SHIFT * ui.uvSlider->value() + WHITEBALANCE_OFFSET);
 
     if (err != DC1394_SUCCESS)
     {
@@ -186,18 +177,15 @@ void VideoDialog::onNewFrame(unsigned char* _jpegBuf)
 {
     ChunkAttrib chunkAttrib;
     float       fps;
-    char        fpsLabelBuff[100];
 
     chunkAttrib = *((ChunkAttrib*)(_jpegBuf-sizeof(ChunkAttrib)));
 
     if (prevFrameTstamp)
     {
-        fps = 1 / (float(chunkAttrib.timestamp - prevFrameTstamp) / 1000);
-        sprintf(fpsLabelBuff, "FPS: %02.01f", fps);
-
         if(frameCnt == 10)
         {
-            ui.fpsLabel->setText(fpsLabelBuff);
+            fps = 1 / (float(chunkAttrib.timestamp - prevFrameTstamp) / 1000);
+            ui.fpsLabel->setText(QString("FPS: %1").arg(fps, 0, 'f', 2));
             frameCnt = 0;
         }
     }
@@ -209,5 +197,10 @@ void VideoDialog::onNewFrame(unsigned char* _jpegBuf)
 
 void VideoDialog::setIsRec(bool _isRec)
 {
-	cycVideoBufJpeg->setIsRec(_isRec);
+    cycVideoBufJpeg->setIsRec(_isRec);
+}
+
+void VideoDialog::onLdsBoxToggled(bool _checked)
+{
+    ui.videoWidget->limitDisplaySize = _checked;
 }
