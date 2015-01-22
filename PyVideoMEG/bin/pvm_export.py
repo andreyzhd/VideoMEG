@@ -38,7 +38,7 @@ import pyvideomeg
 MENCODER_LOG_FILE = '/dev/null'
 FONT_FILE = '/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf'
 FONT_SZ = 20
-        
+
 
 #--------------------------------------------------------------------------
 # Make a temporary folder for storing frames and audio files
@@ -150,9 +150,3 @@ os.system(cmd)
 # Clean up
 #
 shutil.rmtree(tmp_fldr)
-del(vid_file)
-
-
-
-
-
