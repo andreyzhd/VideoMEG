@@ -5,5 +5,5 @@ Comment=Convert video recorded during MEG experiments
 Exec=pvm_export_dragdrop.py
 Terminal=False
 Type=Application
-Icon=applications-science
+Icon=applications-utilities
 Categories=Science;Application;

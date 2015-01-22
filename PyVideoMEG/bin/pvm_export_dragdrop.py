@@ -26,6 +26,10 @@ for vid_file in sys.argv[1:]:
         os.rename(avi_file + '.tmp', avi_file)
     mov_file = op.splitext(avi_file)[0] + '.mov'
     if not op.isfile(mov_file):
-        subprocess.check_call(['avconv', '-i', avi_file, '-f', 'mov',
-                               '-strict', 'experimental', mov_file + '.tmp'])
+        # AVCONV version:
+        # subprocess.check_call(['avconv', '-i', avi_file, '-f', 'mov',
+        #                        '-strict', 'experimental', mov_file + '.tmp'])
+        subprocess.check_call(['mencoder', avi_file, '-oac', 'mp3lame',
+                               '-ovc', 'x264', '-of', 'lavf', '-lavfopts',
+                               'format=mov', '-o', mov_file + '.tmp'])
         os.rename(mov_file + '.tmp', mov_file)
