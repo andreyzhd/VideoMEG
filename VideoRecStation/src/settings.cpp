@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <QSettings>
+#include <QRect>
 
 #include "settings.h"
 #include "config.h"
@@ -33,123 +34,85 @@ Settings::Settings()
 	//
 
 	// JPEG quality
-	if(!settings.contains("video/jpeg_quality"))
-	{
-		settings.setValue("video/jpeg_quality", 80);
-		jpgQuality = 80;
-	}
-	else
-	{
-		jpgQuality = settings.value("video/jpeg_quality").toInt();
-	}
+    jpgQuality = settings.value("video/jpeg_quality", 80).toInt();
 
-	// Use color mode
-	if(!settings.contains("video/color"))
-	{
-		settings.setValue("video/color", false);
-		color = true;
-	}
-	else
-	{
-		color = settings.value("video/color").toBool();
-	}
+    // Use color mode
+    color = settings.value("video/color", true).toBool();
 
+    // Capture settings
+    for (unsigned int i=0; i<MAX_CAMERAS; i++)
+    {
+        videoShutters[i] = settings.value(QString("video/camera_%1_shutter").arg(i+1), SHUTTER_MIN_VAL).toUInt();
+        videoGains[i] = settings.value(QString("video/camera_%1_gain").arg(i+1), GAIN_MIN_VAL).toUInt();
+        videoUVs[i] = settings.value(QString("video/camera_%1_UV").arg(i+1), UV_MIN_VAL).toUInt();
+        videoVRs[i] = settings.value(QString("video/camera_%1_VR").arg(i+1), VR_MIN_VAL).toUInt();
+        videoRects[i] = settings.value(QString("control/viewer_%1_window").arg(i+1), QRect(-1, -1, -1, -1)).toRect();
+    }
+
+    // Window pos and size
+    controllerRect = settings.value("control/controller_window", QRect(-1, -1, -1, -1)).toRect();
 
 	//---------------------------------------------------------------------
 	// Audio settings
 	//
 
 	// Sampling rate
-	if(!settings.contains("audio/sampling_rate"))
-	{
-		settings.setValue("audio/sampling_rate", 44100);
-		sampRate = 44100;
-	}
-	else
-	{
-		sampRate = settings.value("audio/sampling_rate").toInt();
-	}
+    sampRate = settings.value("audio/sampling_rate", 44100).toInt();
 
 	// Frames per period
-	if(!settings.contains("audio/frames_per_period"))
-	{
-		settings.setValue("audio/frames_per_period", 940);
-		framesPerPeriod = 940;
-	}
-	else
-	{
-		framesPerPeriod = settings.value("audio/frames_per_period").toInt();
-	}
+    framesPerPeriod = settings.value("audio/frames_per_period", 940).toInt();
 
 	// Number of periods
-	if(!settings.contains("audio/num_periods"))
-	{
-		settings.setValue("audio/num_periods", 10);
-		nPeriods = 10;
-	}
-	else
-	{
-		nPeriods = settings.value("audio/num_periods").toInt();
-	}
+    nPeriods = settings.value("audio/num_periods", 10).toInt();
 
 	// Enable/disable speaker feedback
-	if(!settings.contains("audio/use_speaker_feedback"))
-	{
-		settings.setValue("audio/use_speaker_feedback", true);
-		useFeedback = true;
-	}
-	else
-	{
-		useFeedback = settings.value("audio/use_speaker_feedback").toBool();
-	}
+    useFeedback = settings.value("audio/use_speaker_feedback", true).toBool();
 
 	// Speaker buffer size (in frames)
-	if(!settings.contains("audio/speaker_buffer_size"))
-	{
-		settings.setValue("audio/speaker_buffer_size", 4);
-		spkBufSz = 4;
-	}
-	else
-	{
-		spkBufSz = settings.value("audio/speaker_buffer_size").toInt();
-	}
+    spkBufSz = settings.value("audio/speaker_buffer_size", 4).toInt();
 
-	// Input audio device
-	if(!settings.contains("audio/input_audio_device"))
-	{
-		settings.setValue("audio/input_audio_device", "default");
-		sprintf(inpAudioDev, "default");
-	}
-	else
-	{
-		sprintf(inpAudioDev, settings.value("audio/input_audio_device").toString().toLocal8Bit().data());
-	}
-
-	// Output audio device
-	if(!settings.contains("audio/output_audio_device"))
-	{
-		settings.setValue("audio/output_audio_device", "default");
-		sprintf(outAudioDev, "default");
-	}
-	else
-	{
-		sprintf(outAudioDev, settings.value("audio/output_audio_device").toString().toLocal8Bit().data());
-	}
-
+    // Input/output audio devices
+    sprintf(inpAudioDev, settings.value("audio/input_audio_device", "default").toString().toLocal8Bit().data());
+    sprintf(outAudioDev, settings.value("audio/output_audio_device", "default").toString().toLocal8Bit().data());
 
 	//---------------------------------------------------------------------
 	// Misc settings
 	//
 
 	// Data storage folder
-	if(!settings.contains("misc/data_storage_path"))
-	{
-		settings.setValue("misc/data_storage_path", "/videodat");
-		sprintf(storagePath, "/videodat");
-	}
-	else
-	{
-		sprintf(storagePath, settings.value("misc/data_storage_path").toString().toLocal8Bit().data());
-	}
+    sprintf(storagePath, settings.value("misc/data_storage_path", "/videodat").toString().toLocal8Bit().data());
+
+    // Camera dummy mode
+    dummyMode = settings.value("misc/dummy_mode", false).toBool();
 }
 
+Settings::~Settings()
+{
+    QSettings settings(ORG_NAME, APP_NAME);
+
+    settings.setValue("video/jpeg_quality", jpgQuality);
+    settings.setValue("video/color", color);
+    for (unsigned int i=0; i<MAX_CAMERAS; i++)
+    {
+        settings.setValue(QString("video/camera_%1_shutter").arg(i+1), videoShutters[i]);
+        settings.setValue(QString("video/camera_%1_gain").arg(i+1), videoGains[i]);
+        settings.setValue(QString("video/camera_%1_UV").arg(i+1), videoUVs[i]);
+        settings.setValue(QString("video/camera_%1_VR").arg(i+1), videoVRs[i]);
+        settings.setValue(QString("control/viewer_%1_window").arg(i+1), videoRects[i]);
+    }
+    settings.setValue("control/controller_window", controllerRect);
+
+    settings.setValue("audio/sampling_rate", sampRate);
+    settings.setValue("audio/frames_per_period", framesPerPeriod);
+    settings.setValue("audio/num_periods", nPeriods);
+    settings.setValue("audio/use_speaker_feedback", useFeedback);
+    settings.setValue("audio/speaker_buffer_size", spkBufSz);
+
+    settings.setValue("audio/input_audio_device", inpAudioDev);
+    settings.setValue("audio/output_audio_device", outAudioDev);
+
+    settings.setValue("misc/data_storage_path", storagePath);
+    settings.setValue("misc/dummy_mode", dummyMode);
+
+    settings.sync();
+}

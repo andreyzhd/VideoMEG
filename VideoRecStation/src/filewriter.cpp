@@ -21,6 +21,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "filewriter.h"
 
@@ -122,6 +123,10 @@ void FileWriter::stoppableRun()
 			if (prevIsRec)
 			{
 				outData.close();
+                if (chmod(nameBuf, S_IRUSR | S_IRGRP | S_IROTH))
+                {
+                    cerr << "Could net set file read-only";
+                }
 			}
 		}
 
@@ -132,7 +137,11 @@ void FileWriter::stoppableRun()
 			if(prevIsRec)
 			{
 				outData.close();
-			}
+                if (chmod(nameBuf, S_IRUSR | S_IRGRP | S_IROTH))
+                {
+                    cerr << "Could net set file read-only";
+                }
+            }
 			return;
 		}
 	}

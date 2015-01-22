@@ -20,6 +20,9 @@
 #ifndef SETTINGS_H_
 #define SETTINGS_H_
 
+#include <QRect>
+#include <common.h>
+
 //! Application-wide settings preserved across multiple invocations.
 /*!
  * This class contains application-wide settings read from disc. To read the
@@ -36,6 +39,7 @@ class Settings {
 	// TODO: implement singleton pattern?
 public:
 	Settings();
+    ~Settings();
 
 	// video
 	int				jpgQuality;
@@ -46,12 +50,19 @@ public:
 	unsigned int	framesPerPeriod;
 	unsigned int	nPeriods;
 	unsigned int	spkBufSz;
-	char			inpAudioDev[500];
-	char			outAudioDev[500];
+    char			inpAudioDev[500];
+    char			outAudioDev[500];
 	bool			useFeedback;
+    QRect           controllerRect;
+    QRect           videoRects[MAX_CAMERAS];
+    unsigned int    videoShutters[MAX_CAMERAS];
+    unsigned int    videoGains[MAX_CAMERAS];
+    unsigned int    videoUVs[MAX_CAMERAS];
+    unsigned int    videoVRs[MAX_CAMERAS];
 
 	// misc
-	char			storagePath[500];
+    char			storagePath[500];
+    bool            dummyMode;
 };
 
 #endif /* SETTINGS_H_ */
