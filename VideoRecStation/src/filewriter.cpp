@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <QFileInfo>
 
 #include "filewriter.h"
 
@@ -109,6 +110,7 @@ void FileWriter::stoppableRun()
                     cerr << "Error opening the file " << nameBuf << endl;
                     abort();
                 }
+                readableFileName = QFileInfo(nameBuf).fileName();
                 header = getHeader(&headerLen);
                 outData.write((const char*)header, headerLen);
             }

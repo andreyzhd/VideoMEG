@@ -31,6 +31,8 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *paren
 {
     Settings    settings;
     cameraIdx = _cameraIdx;
+    prevFrameTstamp = 0;
+    frameCnt = 0;
 
     ui.setupUi(this);
     ui.videoWidget->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);

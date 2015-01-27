@@ -20,6 +20,7 @@
 #ifndef FILEWRITER_H_
 #define FILEWRITER_H_
 
+#include <QString>
 #include "stoppablethread.h"
 #include "cycdatabuffer.h"
 
@@ -55,6 +56,9 @@ private:
     char*           suffix;
     char*           ext;
     int             streamId;
+
+public:
+    QString readableFileName;
 };
 
 #endif /* FILEWRITER_H_ */

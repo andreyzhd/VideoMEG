@@ -66,8 +66,8 @@ private:
     VideoCompressorThread*  videoCompressorThread;
 
     // These variables are used for showing the FPS
-    u_int64_t               prevFrameTstamp=0;
-    int                     frameCnt=0;
+    u_int64_t               prevFrameTstamp;
+    int                     frameCnt;
 };
 
 #endif // VIDEODIALOG_H

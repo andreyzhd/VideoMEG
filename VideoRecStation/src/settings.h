@@ -64,6 +64,10 @@ public:
     // misc
     QString         storagePath;
     bool            dummyMode;
+    bool            controlOnTop;
+    double          lowDiskSpaceWarning;
+    bool            confirmStop;
+    bool            metersUseDB;
 };
 
 #endif /* SETTINGS_H_ */

@@ -22,6 +22,9 @@
 #define MAINDIALOG_H
 
 #include <QMainWindow>
+#include <QMessageBox>
+#include <QTimer>
+#include <QTime>
 
 #include "config.h"
 #include "ui_maindialog.h"
@@ -34,6 +37,7 @@
 #include "videocompressorthread.h"
 #include "videodialog.h"
 #include "settings.h"
+
 
 class MainDialog : public QMainWindow
 {
@@ -49,8 +53,10 @@ public slots:
     void onStopRec();
     void onExit();
     void onAudioUpdate(unsigned char* _data);
-    void onCam1Toggled(bool _state);
-    void onCam2Toggled(bool _state);
+    void onCamToggled(bool _state);
+    void updateDiskSpace();
+    void updateRunningStatus();
+    double freeSpaceGB();
 
 private:
     void initVideo();
@@ -61,10 +67,18 @@ private:
 
     dc1394camera_t*     cameras[MAX_CAMERAS];
     VideoDialog*        videoDialogs[MAX_CAMERAS];
+    QCheckBox*          camCheckBoxes[MAX_CAMERAS];
+    unsigned int        numCameras;
+    QSpacerItem*        vertSpacer;
 
     MicrophoneThread*   microphoneThread;
     CycDataBuffer*      cycAudioBuf;
     AudioFileWriter*    audioFileWriter;
+
+    QLabel *statusLeft;
+    QLabel *statusRight;
+    QTimer *updateTimer;
+    QTime *updateElapsed;
 
     // Data structures for volume indicator. volMaxvals is a cyclic buffer
     // that stores maximal values for the last N_BUF_4_VOL_IND periods for
