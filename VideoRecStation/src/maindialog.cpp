@@ -355,6 +355,7 @@ void MainDialog::initVideo()
         camCheckBoxes[i]->setEnabled(true);
         connect(camCheckBoxes[i], SIGNAL(toggled(bool)), this, SLOT(onCamToggled(bool)));
     }
+    statusLeft->setText(QString("Found %1 camera%2").arg(numCameras).arg(numCameras != 1 ? "s" : ""));
     vertSpacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
     ui.videoVerticalLayout->addItem(vertSpacer);
 }
