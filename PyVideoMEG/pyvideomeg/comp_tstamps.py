@@ -16,7 +16,13 @@
 """
 import numpy
 
-
+# Parameters for detecting timestamps. Should match the parameters used for
+# generating the timing sequence
+_BASELINE = 5        # seconds
+_TRAIN_INTRVL = 10   # seconds
+_TRAIN_STEP = 0.015  # seconds
+_NBITS = 43          # including the parity bit
+    
 def _read_timestamp(dtrigs, cur, step, nbits):
     """
     Read and decode one timestamp. Return the timestamp on success or -1
@@ -52,15 +58,14 @@ def _read_timestamp(dtrigs, cur, step, nbits):
         return(ts)
 
 
-def comp_tstamps(inp, sfreq):
-    """
-    Extract timestamps from a trigger channel
+def _comp_tstamps_1bit(inp, sfreq):
+    """ Extract timestamps from a "normal" (not composite) trigger channel
+    
         inp - vector of samples for the trigger channel
         sfreq - sampling frequency
     Return the vector of the same length as inp, containing timestamps for
-    each entry of inp. For detecting timestamps use parameters defined
-    below (should match the parameters used for generating the timing
-    sequence).
+    each entry of inp. For detecting timestamps use parameters in the beginning
+    of the file. Assume that the input values are either 0 or 1.
     
     TODO: this function does not handle the boundary case for the first train
     of pulses correctly. This is because there is no trigger before the train
@@ -69,12 +74,8 @@ def comp_tstamps(inp, sfreq):
     this.
     """
     
-    THRESH = 3
-    BASELINE = 5        # seconds
-    TRAIN_INTRVL = 10   # seconds
-    TRAIN_STEP = 0.015  # seconds
-    NBITS = 43          # including the parity bit
-
+    THRESH = 0.5    
+    
     # input should be a 1-d vector
     assert(inp.ndim == 1)
     
@@ -86,18 +87,18 @@ def comp_tstamps(inp, sfreq):
     tss = []
     dtrigs = numpy.diff(trigs)
     
-    for i in numpy.where(dtrigs > BASELINE * sfreq)[0]:
-        ts = _read_timestamp(dtrigs, i, TRAIN_STEP*sfreq, NBITS)
+    for i in numpy.where(dtrigs > _BASELINE * sfreq)[0]:
+        ts = _read_timestamp(dtrigs, i, _TRAIN_STEP*sfreq, _NBITS)
 
         if ts <> -1:
             samps.append(trigs[i+1])
             tss.append(ts)
 
-    # do some sanoity checking
+    # do some sanity checking
     if len(tss) < 2:
         raise Exception('Less than 2 timestamps found')
         
-    if len(tss) * TRAIN_INTRVL * sfreq < len(inp) * 0.1:
+    if len(tss) * _TRAIN_INTRVL * sfreq < len(inp) * 0.1:
         raise Exception('Too few timestamps detected')
 
     # fit timestamps to samples with linear regression
@@ -108,3 +109,27 @@ def comp_tstamps(inp, sfreq):
     print('comp_tstamps: regression fit errors (abs): mean %f, median %f, max %f' % (errs.mean(), numpy.median(errs), errs.max()))
 
     return(data_tstamps)
+
+
+def comp_tstamps(inp, sfreq):
+    """ Extract timestamps from a trigger channel
+    
+        inp - vector of samples for the trigger channel
+        sfreq - sampling frequency
+    Check individual bits of the inp to see whether any of them contains timing
+    information. Return the vector of the same length as inp, containing
+    timestamps for each entry of inp.
+    """
+    
+    if inp.min() < 0:
+        raise Exception('Negative values in composite? channel')
+    
+    # Try different bits until succeeding or running out of the bits
+    while inp.max() > 0:
+        try:
+            return(_comp_tstamps_1bit(inp % 2, sfreq))
+        except Exception:
+            inp = inp // 2
+            
+    raise Exception('No timing information found')
+        
