@@ -1,5 +1,5 @@
 /*
- * glvideowidget.h
+ * videowidget.h
  *
  * Author: Andrey Zhdanov
  * Copyright (C) 2014 BioMag Laboratory, Helsinki University Central Hospital
