@@ -1,5 +1,5 @@
-VideoMEG
-========
+The Helsinki VideoMEG Project
+=============================
 
 Software for recording video during a magnetoencephalography examination
 
