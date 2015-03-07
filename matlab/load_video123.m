@@ -1,3 +1,8 @@
+function [ts, ids, site_id, is_sender, frame_sizes, frame_ptrs] = load_video123(fname, outfldr)
+% OUTFLDR is the output folder for storing jpeg images of individual
+% frames. If OUTFLDR is an emptry string, do not create any jpeg images
+    
+%--------------------------------------------------------------------------
 %   Copyright (C) 2015 BioMag Laboratory, Helsinki University Central Hospital
 %
 %   This program is free software: you can redistribute it and/or modify
@@ -11,10 +16,7 @@
 %
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-function [ts, ids, site_id, is_sender, frame_sizes, frame_ptrs] = load_video123(fname, outfldr)
-    % OUTFLDR is the output folder for storing jpeg images of individual
-    % frames. If OUTFLDR is an emptry string, do not create any jpeg images
+%--------------------------------------------------------------------------
     
     MAGIC_STR = 'ELEKTA_VIDEO_FILE';
 

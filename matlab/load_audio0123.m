@@ -1,3 +1,8 @@
+function [ts, ids, offset, data, srate, site_id, is_sender] = load_audio0123(filename, fix_tstamps)
+% If FIX_TSTAMPS is true, try to fix the timestamps so that all the
+% buffers have approximately equal length
+    
+%--------------------------------------------------------------------------
 %   Copyright (C) 2015 BioMag Laboratory, Helsinki University Central Hospital
 %
 %   This program is free software: you can redistribute it and/or modify
@@ -11,10 +16,8 @@
 %
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 
-function [ts, ids, offset, data, srate, site_id, is_sender] = load_audio0123(filename, fix_tstamps)
-    % If FIX_TSTAMPS is true, try to fix the timestamps so that all the
-    % buffers have approximately equal length
     MAGIC_STR = 'ELEKTA_AUDIO_FILE';
 
     h = fopen(filename, 'rb');

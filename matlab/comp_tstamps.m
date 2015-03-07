@@ -1,18 +1,3 @@
-%   Copyright (C) 2015 BioMag Laboratory, Helsinki University Central Hospital
-%
-%   This program is free software: you can redistribute it and/or modify
-%   it under the terms of the GNU General Public License as published by
-%   the Free Software Foundation, version 3.
-%
-%   This program is distributed in the hope that it will be useful,
-%   but WITHOUT ANY WARRANTY; without even the implied warranty of
-%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-%   GNU General Public License for more details.
-%
-%   You should have received a copy of the GNU General Public License
-%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 function data_tstamps = comp_tstamps(inp, sfreq)
 % COMP_TSTAMPS - extract timestamps from a trigger channel
 %   INP - vector of samples for the trigger channel
@@ -27,6 +12,22 @@ function data_tstamps = comp_tstamps(inp, sfreq)
 %   and there will be no dtrigs value before the first trigger of the train.
 %   Thus the first pulse train will always be ignored. It would be neat to fix
 %   this.
+
+%--------------------------------------------------------------------------
+%   Copyright (C) 2015 BioMag Laboratory, Helsinki University Central Hospital
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, version 3.
+%
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+%
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%--------------------------------------------------------------------------
 
 THRESH = 3;
 BASELINE = 5;   % seconds
