@@ -193,6 +193,8 @@ class VideoData:
             self._file.seek(sz, 1)
             ts, block_id, sz, total_sz = _read_attrib(self._file, self.ver)
             
+        self.nframes = self.ts.size
+            
     def __del__(self):
         self._file.close()
         
