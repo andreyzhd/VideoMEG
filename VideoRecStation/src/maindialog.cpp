@@ -387,3 +387,12 @@ void MainDialog::onCamToggled(bool _state)
         this->cleanVideoDialog(idx);
     }
 }
+
+
+void MainDialog::keyPressEvent(QKeyEvent* e)
+{
+      QMessageBox* box = new QMessageBox();
+      box->setWindowTitle(QString("Hello"));
+      box->setText(QString("You Pressed: ")+ e->text());
+      box->show();
+}
