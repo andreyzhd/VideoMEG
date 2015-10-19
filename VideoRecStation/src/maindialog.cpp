@@ -22,6 +22,8 @@
 #include <sys/statvfs.h>
 #include <math.h>
 
+#include <QStorageInfo>
+
 #include "config.h"
 #include "maindialog.h"
 
@@ -109,9 +111,8 @@ MainDialog::MainDialog(QWidget *parent)
 
 double MainDialog::freeSpaceGB()
 {
-    struct statvfs buf;
-    statvfs(settings.storagePath.toLocal8Bit().data(), &buf);
-    return (double)(buf.f_bsize * buf.f_bavail) / 1073741824.0;
+    QStorageInfo storageInfo(settings.storagePath);
+    return double(storageInfo.bytesAvailable()) / 1073741824.0;
 }
 
 
