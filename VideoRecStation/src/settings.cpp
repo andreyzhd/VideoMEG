@@ -89,6 +89,15 @@ Settings::Settings()
 
     // Camera dummy mode
     dummyMode = settings.value("misc/dummy_mode", false).toBool();
+
+    // Markers
+    for (unsigned int i=0; i<MAX_MARKERS; i++)
+    {
+        markerVirtKey[i] = settings.value(QString("markers/nativeVirtualKey_%1").arg(i+1), 65474+i).toUInt();
+        markerType[i] = settings.value(QString("markers/type_%1").arg(i+1), QString("marker %1").arg(i+1)).toString();
+    }
+
+    markersStoragePath = settings.value("markers/storage_path", "/videodat/markers").toString();
 }
 
 Settings::~Settings()
@@ -123,6 +132,15 @@ Settings::~Settings()
 
     settings.setValue("misc/data_storage_path", storagePath);
     settings.setValue("misc/dummy_mode", dummyMode);
+
+    // Markers
+    for (unsigned int i=0; i<MAX_MARKERS; i++)
+    {
+        settings.setValue(QString("markers/nativeVirtualKey_%1").arg(i+1), markerVirtKey[i]);
+        settings.setValue(QString("markers/type_%1").arg(i+1), markerType[i]);
+    }
+
+    settings.setValue("markers/storage_path", markersStoragePath);
 
     settings.sync();
 }

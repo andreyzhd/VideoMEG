@@ -68,6 +68,11 @@ public:
     double          lowDiskSpaceWarning;
     bool            confirmStop;
     bool            metersUseDB;
+
+    // markers
+    quint32         markerVirtKey[MAX_MARKERS];
+    QString         markerType[MAX_MARKERS];
+    QString         markersStoragePath;
 };
 
 #endif /* SETTINGS_H_ */
