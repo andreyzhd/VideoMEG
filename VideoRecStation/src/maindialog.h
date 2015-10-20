@@ -48,7 +48,7 @@ public:
     MainDialog(QWidget *parent = 0);
     ~MainDialog();
     Settings            settings;
-    void keyPressEvent(QKeyEvent* e);
+    void keyPressEvent(QKeyEvent* _keyEvent);
 
 public slots:
     void onStartRec();

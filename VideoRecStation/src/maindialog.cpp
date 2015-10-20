@@ -23,6 +23,7 @@
 #include <math.h>
 
 #include <QStorageInfo>
+#include <QDebug>
 
 #include "config.h"
 #include "maindialog.h"
@@ -390,10 +391,12 @@ void MainDialog::onCamToggled(bool _state)
 }
 
 
-void MainDialog::keyPressEvent(QKeyEvent* e)
+void MainDialog::keyPressEvent(QKeyEvent* _keyEvent)
 {
-      QMessageBox* box = new QMessageBox();
-      box->setWindowTitle(QString("Hello"));
-      box->setText(QString("You Pressed: ")+ e->text());
-      box->show();
+    qDebug() << endl << endl;
+    qDebug() << "Text:               " << _keyEvent->text();
+    qDebug() << "Modifiers:          " << _keyEvent->modifiers();
+    qDebug() << "Native modifiers:   " << _keyEvent->nativeModifiers();
+    qDebug() << "Native scancode:    " << _keyEvent->nativeScanCode();
+    qDebug() << "Native virtual key: " << _keyEvent->nativeVirtualKey();
 }
