@@ -26,16 +26,17 @@
 
 using namespace std;
 
-MicrophoneThread::MicrophoneThread(CycDataBuffer* _cycBuf)
+MicrophoneThread::MicrophoneThread(CycDataBuffer* _cycBuf, Settings* _settings)
 {
     int                     rc;
     snd_pcm_hw_params_t*    params;
     unsigned int            val;
 
     cycBuf = _cycBuf;
+    settings = _settings;
 
     /* Open PCM device for recording (capture). */
-    rc = snd_pcm_open(&pcmHandle, settings.inpAudioDev.toLocal8Bit().data(), SND_PCM_STREAM_CAPTURE, 0);
+    rc = snd_pcm_open(&pcmHandle, settings->inpAudioDev.toLocal8Bit().data(), SND_PCM_STREAM_CAPTURE, 0);
     if (rc < 0)
     {
         cerr << "unable to open pcm device: " << snd_strerror(rc) << endl;
@@ -48,7 +49,7 @@ MicrophoneThread::MicrophoneThread(CycDataBuffer* _cycBuf)
     /* Fill it in with default values. */
     if (snd_pcm_hw_params_any(pcmHandle, params) < 0)
     {
-        cerr << "Can not configure PCM device: " << settings.inpAudioDev.toLocal8Bit().data() << endl;
+        cerr << "Can not configure PCM device: " << settings->inpAudioDev.toLocal8Bit().data() << endl;
         abort();
     }
 
@@ -64,15 +65,15 @@ MicrophoneThread::MicrophoneThread(CycDataBuffer* _cycBuf)
     snd_pcm_hw_params_set_channels(pcmHandle, params, N_CHANS);
 
     /* Set sampling rate */
-    val = settings.sampRate;
+    val = settings->sampRate;
     snd_pcm_hw_params_set_rate_near(pcmHandle, params, &val, NULL);
 
     /* Set period size (in frames) */
-    framesPerPeriod = settings.framesPerPeriod;
+    framesPerPeriod = settings->framesPerPeriod;
     snd_pcm_hw_params_set_period_size_near(pcmHandle, params, &framesPerPeriod, NULL);
 
     /* Set number of periods */
-    if (snd_pcm_hw_params_set_periods(pcmHandle, params, settings.nPeriods, 0) < 0)
+    if (snd_pcm_hw_params_set_periods(pcmHandle, params, settings->nPeriods, 0) < 0)
     {
       cerr << "Error setting periods" << endl;
       abort();
@@ -87,16 +88,16 @@ MicrophoneThread::MicrophoneThread(CycDataBuffer* _cycBuf)
     }
 
     snd_pcm_hw_params_get_rate(params, &val, NULL);
-    if (val != settings.sampRate)
+    if (val != settings->sampRate)
     {
-        cout << "unable to set sampling rate: requested " << settings.sampRate << ", actual " << val << endl;
+        cout << "unable to set sampling rate: requested " << settings->sampRate << ", actual " << val << endl;
         abort();
     }
 
     snd_pcm_hw_params_get_period_size(params, &framesPerPeriod, NULL);
-    if (settings.framesPerPeriod != framesPerPeriod)
+    if (settings->framesPerPeriod != framesPerPeriod)
     {
-        cout << "unable to set frames per period: requested " << settings.framesPerPeriod << ", actual " << framesPerPeriod << endl;
+        cout << "unable to set frames per period: requested " << settings->framesPerPeriod << ", actual " << framesPerPeriod << endl;
         abort();
     }
 
@@ -157,7 +158,7 @@ void MicrophoneThread::stoppableRun()
         msec = timestamp.tv_nsec / 1000000;
         msec += timestamp.tv_sec * 1000;
 
-        chunkAttrib.chunkSize = settings.framesPerPeriod * N_CHANS * sizeof(AUDIO_DATA_TYPE);
+        chunkAttrib.chunkSize = settings->framesPerPeriod * N_CHANS * sizeof(AUDIO_DATA_TYPE);
         chunkAttrib.timestamp = msec;
 
         cycBuf->insertChunk(periodBuffer, chunkAttrib);

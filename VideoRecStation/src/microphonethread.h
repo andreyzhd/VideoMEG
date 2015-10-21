@@ -31,7 +31,7 @@
 class MicrophoneThread : public StoppableThread
 {
 public:
-    MicrophoneThread(CycDataBuffer* _cycBuf);
+    MicrophoneThread(CycDataBuffer* _cycBuf, Settings* _settings);
     virtual ~MicrophoneThread();
 
 protected:
@@ -42,7 +42,7 @@ private:
     snd_pcm_t*          pcmHandle;
     snd_pcm_uframes_t   framesPerPeriod;
     unsigned char*      periodBuffer;
-    Settings            settings;
+    Settings*           settings;
 };
 
 #endif /* MICROPHONETHREAD_H_ */

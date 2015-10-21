@@ -33,7 +33,8 @@ HEADERS += settings.h \
     config.h \
     camerathread.h \
     videowidget.h \
-    maindialog.h
+    maindialog.h \
+    keymonitor.h
 SOURCES += settings.cpp \
     videodialog.cpp \
     filewriter.cpp \
@@ -48,7 +49,8 @@ SOURCES += settings.cpp \
     camerathread.cpp \
     videowidget.cpp \
     main.cpp \
-    maindialog.cpp
+    maindialog.cpp \
+    keymonitor.cpp
 FORMS += videodialog.ui \
     maindialog.ui
 INCLUDEPATH += /usr/include/c++/4.4 \

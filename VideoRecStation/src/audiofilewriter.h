@@ -21,11 +21,12 @@
 #define AUDIOFILEWRITER_H_
 
 #include "filewriter.h"
+#include "settings.h"
 
 class AudioFileWriter : public FileWriter
 {
 public:
-    AudioFileWriter(CycDataBuffer* _cycBuf, const char* _path);
+    AudioFileWriter(CycDataBuffer* _cycBuf, const char* _path, Settings* _settings);
     virtual ~AudioFileWriter();
 
 protected:

@@ -63,8 +63,8 @@ MainDialog::MainDialog(QWidget *parent)
 
     // Set up audio recording
     cycAudioBuf = new CycDataBuffer(CIRC_AUDIO_BUFF_SZ);
-    microphoneThread = new MicrophoneThread(cycAudioBuf);
-    audioFileWriter = new AudioFileWriter(cycAudioBuf, settings.storagePath.toLocal8Bit().data());
+    microphoneThread = new MicrophoneThread(cycAudioBuf, &settings);
+    audioFileWriter = new AudioFileWriter(cycAudioBuf, settings.storagePath.toLocal8Bit().data(), &settings);
     QObject::connect(cycAudioBuf, SIGNAL(chunkReady(unsigned char*)), this, SLOT(onAudioUpdate(unsigned char*)));
 
     // Initialize volume indicator history
@@ -75,7 +75,7 @@ MainDialog::MainDialog(QWidget *parent)
     if(settings.useFeedback)
     {
         speakerBuffer = new NonBlockingBuffer(settings.spkBufSz, settings.framesPerPeriod*N_CHANS*sizeof(AUDIO_DATA_TYPE));
-        speakerThread = new SpeakerThread(speakerBuffer);
+        speakerThread = new SpeakerThread(speakerBuffer, &settings);
     }
     else
     {

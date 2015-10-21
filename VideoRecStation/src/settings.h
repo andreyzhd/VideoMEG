@@ -27,16 +27,14 @@
 /*!
  * This class contains application-wide settings read from disc. To read the
  * settings simply create the instance of this class and read the values from
- * the corresponding public variables of the class. The settings are supposed
- * to be read only; they can be changed by manually editing the text file
- * between program invocations but they should stay constant for the whole
- * lifetime of a single program instance. The class should be completely
- * thread-safe (CURRENTLY IT IS NOT).
+ * the corresponding public variables of the class. You can modify the values,
+ * upon destruction these will be saved to the disk. Only one instance of the
+ * class is allowed, if you try to create the second instance before
+ * destroying the existing one, the constructor will trow an exception. This
+ * class should be made completely thread-safe (CURRENTLY IT IS NOT).
  */
 class Settings {
-    // TODO: make member variables immutable as much as possible
     // TODO: make the class thread-safe
-    // TODO: implement singleton pattern?
 public:
     Settings();
     ~Settings();
@@ -73,6 +71,10 @@ public:
     unsigned int    markerKeySym[MAX_MARKERS]; // codes (e.g. for XK_F8, XK_F9, etc) taken from <X11/Xutil.h>
     QString         markerType[MAX_MARKERS];
     QString         markersStoragePath;
+
+private:
+    // true if one instance of the class already exists---used to prevent multiple instances
+    static volatile bool existsInstance;
 };
 
 #endif /* SETTINGS_H_ */

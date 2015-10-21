@@ -20,12 +20,29 @@
 #include <stdio.h>
 #include <QSettings>
 #include <QRect>
+#include <QException>
+#include <QDebug>
 
 #include "settings.h"
 #include "config.h"
 
+volatile bool Settings::existsInstance = false;
+
 Settings::Settings()
 {
+    // Don't allow to create more than one instance. Because on the atomicity
+    // of test-and-set is not guaranteed, it might fail in (hopefully) very rare
+    // cases of race condition.
+    if (existsInstance)
+    {
+        qDebug() << "Cannot create more than one instance of Settings" << endl;
+        throw QException();
+    }
+    else
+    {
+        existsInstance = true;
+    }
+
     QSettings settings(ORG_NAME, APP_NAME);
 
 
@@ -143,4 +160,5 @@ Settings::~Settings()
     settings.setValue("markers/storage_path", markersStoragePath);
 
     settings.sync();
+    existsInstance = false;
 }
