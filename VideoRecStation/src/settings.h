@@ -70,7 +70,7 @@ public:
     bool            metersUseDB;
 
     // markers
-    quint32         markerVirtKey[MAX_MARKERS];
+    unsigned int    markerKeySym[MAX_MARKERS]; // codes (e.g. for XK_F8, XK_F9, etc) taken from <X11/Xutil.h>
     QString         markerType[MAX_MARKERS];
     QString         markersStoragePath;
 };

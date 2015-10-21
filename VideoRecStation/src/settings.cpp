@@ -93,7 +93,7 @@ Settings::Settings()
     // Markers
     for (unsigned int i=0; i<MAX_MARKERS; i++)
     {
-        markerVirtKey[i] = settings.value(QString("markers/nativeVirtualKey_%1").arg(i+1), 65474+i).toUInt();
+        markerKeySym[i] = settings.value(QString("markers/KeySym_%1").arg(i+1), 0xffc6+i).toUInt(); // 0xffc6 corresponds to XK_F9
         markerType[i] = settings.value(QString("markers/type_%1").arg(i+1), QString("marker %1").arg(i+1)).toString();
     }
 
@@ -136,7 +136,7 @@ Settings::~Settings()
     // Markers
     for (unsigned int i=0; i<MAX_MARKERS; i++)
     {
-        settings.setValue(QString("markers/nativeVirtualKey_%1").arg(i+1), markerVirtKey[i]);
+        settings.setValue(QString("markers/KeySym_%1").arg(i+1), markerKeySym[i]);
         settings.setValue(QString("markers/type_%1").arg(i+1), markerType[i]);
     }
 
