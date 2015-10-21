@@ -25,7 +25,6 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QTime>
-#include <QKeyEvent>
 
 #include "config.h"
 #include "ui_maindialog.h"
@@ -48,7 +47,6 @@ public:
     MainDialog(QWidget *parent = 0);
     ~MainDialog();
     Settings            settings;
-    void keyPressEvent(QKeyEvent* _keyEvent);
 
 public slots:
     void onStartRec();
