@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>505</width>
-    <height>374</height>
+    <height>552</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,10 +15,13 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QListView" name="markersList"/>
-   </item>
-   <item>
-    <widget class="QPlainTextEdit" name="markerTextEdit"/>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="QListView" name="markersList"/>
+     <widget class="QPlainTextEdit" name="markerTextEdit"/>
+    </widget>
    </item>
   </layout>
  </widget>
