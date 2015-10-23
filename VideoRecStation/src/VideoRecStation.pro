@@ -35,7 +35,8 @@ HEADERS += settings.h \
     videowidget.h \
     maindialog.h \
     keymonitor.h \
-    fixx11.h
+    fixx11.h \
+    markerswidget.h
 SOURCES += settings.cpp \
     videodialog.cpp \
     filewriter.cpp \
@@ -51,9 +52,11 @@ SOURCES += settings.cpp \
     videowidget.cpp \
     main.cpp \
     maindialog.cpp \
-    keymonitor.cpp
+    keymonitor.cpp \
+    markerswidget.cpp
 FORMS += videodialog.ui \
-    maindialog.ui
+    maindialog.ui \
+    markerswidget.ui
 INCLUDEPATH += /usr/include/c++/4.4 \
     /usr/include \
     /usr/local/include
