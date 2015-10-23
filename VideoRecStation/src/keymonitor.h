@@ -21,10 +21,13 @@
 #define KEYMONITOR_H
 
 #include <QObject>
-#include <X11/Xlib.h>
 
 #include "stoppablethread.h"
 #include "settings.h"
+
+#include <X11/Xlib.h>   // These two files have to be included next to each
+#include "fixx11h.h"    // other in this specific order. Otherwise things
+                        // break.
 
 //! A class for monitoring key presses.
 /*!

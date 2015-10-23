@@ -34,7 +34,8 @@ HEADERS += settings.h \
     camerathread.h \
     videowidget.h \
     maindialog.h \
-    keymonitor.h
+    keymonitor.h \
+    fixx11.h
 SOURCES += settings.cpp \
     videodialog.cpp \
     filewriter.cpp \
