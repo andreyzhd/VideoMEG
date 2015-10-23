@@ -20,6 +20,7 @@
 #ifndef KEYMONITOR_H
 #define KEYMONITOR_H
 
+#include <stdint.h>
 #include <QObject>
 
 #include "stoppablethread.h"
@@ -49,7 +50,7 @@ signals:
     /*!
      * This signal is raised when user presses a key to create a marker.
      */
-    void keyPressed(QString _markerType);
+    void keyPressed(QString _markerType, uint64_t _timestamp);
 
 protected:
     virtual void stoppableRun();

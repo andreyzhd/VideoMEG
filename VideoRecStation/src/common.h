@@ -24,7 +24,6 @@
 #define VIDEO_HEIGHT        480
 #define VIDEO_WIDTH         640
 #define MAX_CAMERAS         6
-#define MAX_MARKERS         4
 
 // Audio configuration
 #define AUDIO_FORMAT        SND_PCM_FORMAT_S16_LE   // from <alsa/asoundlib.h>
@@ -36,6 +35,10 @@
 
 #define MAGIC_VIDEO_STR     "ELEKTA_VIDEO_FILE"
 #define MAGIC_AUDIO_STR     "ELEKTA_AUDIO_FILE"
+
+// Markers configuration
+#define MAX_MARKERS         4
+#define KEY_REP_SUPPRES     1000                    // milliseconds
 
 #define COMMON_H_
 

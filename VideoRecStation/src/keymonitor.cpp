@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <time.h>
 #include <QException>
 #include <QDebug>
 
@@ -60,8 +61,11 @@ KeyMonitor::KeyMonitor(Settings* _settings)
 
 void KeyMonitor::stoppableRun()
 {
-    int     i;
-    XEvent  ev;
+    int             i;
+    XEvent          ev;
+    struct timespec utimestamp;
+    u_int64_t       timestamp;
+    u_int64_t       lastSentTimestamp = 0;
 
     while(!shouldStop)
     {
@@ -78,7 +82,15 @@ void KeyMonitor::stoppableRun()
         {
             if((((XKeyEvent&)ev).keycode) == keyCodes[i])
             {
-                emit keyPressed(keyTypes[i]);
+                clock_gettime(CLOCK_REALTIME, &utimestamp);
+                timestamp = utimestamp.tv_nsec / 1000000 + utimestamp.tv_sec * 1000;
+
+                // repetition suppression
+                if(timestamp - lastSentTimestamp > KEY_REP_SUPPRES)
+                {
+                    emit keyPressed(keyTypes[i], timestamp);
+                    lastSentTimestamp = timestamp;
+                }
                 break;  // if keyCodes has several identical entries, create only 1 event
             }
         }
