@@ -60,8 +60,6 @@ public slots:
 
 private:
     void initVideo();
-    void setupVideoDialog(unsigned int);
-    void cleanVideoDialog(unsigned int);
 
     Ui::MainDialogClass ui;
 

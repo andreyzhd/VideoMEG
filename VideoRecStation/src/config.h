@@ -70,7 +70,7 @@
 #define SPK_THREAD_PRIORITY 5
 
 // Used for storing application settings
-#define ORG_NAME "Elekta"
+#define ORG_NAME "HelsinkiVideoMEG"
 #define APP_NAME "VideoRecStation"
 
 #define CONFIG_H_
