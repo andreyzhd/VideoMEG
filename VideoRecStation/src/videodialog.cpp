@@ -49,7 +49,7 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, Settings* _set
     QObject::connect(cycVideoBufJpeg, SIGNAL(chunkReady(unsigned char*)), ui.videoWidget, SLOT(onDrawFrame(unsigned char*)));
     QObject::connect(cycVideoBufJpeg, SIGNAL(chunkReady(unsigned char*)), this, SLOT(onNewFrame(unsigned char*)));
 
-    // Setup gain/shutter sliders
+    // Setup sliders' limits
     ui.shutterSlider->setMinimum(SHUTTER_MIN_VAL);
     ui.shutterSlider->setMaximum(SHUTTER_MAX_VAL);
 
@@ -72,10 +72,19 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, Settings* _set
     {
         this->setGeometry(settings->videoRects[_cameraIdx]);
     }
+
+    // Setup sliders' positions
     ui.shutterSlider->setValue(settings->videoShutters[_cameraIdx]);
     ui.gainSlider->setValue(settings->videoGains[_cameraIdx]);
     ui.uvSlider->setValue(settings->videoUVs[_cameraIdx]);
     ui.vrSlider->setValue(settings->videoVRs[_cameraIdx]);
+
+    // Write the sliders' values to the camera
+    onShutterChanged(settings->videoShutters[_cameraIdx]);
+    onGainChanged(settings->videoGains[_cameraIdx]);
+    onUVChanged(settings->videoUVs[_cameraIdx]);
+    onVRChanged(settings->videoVRs[_cameraIdx]);
+
     ui.ldsBox->setChecked(settings->videoLimits[_cameraIdx]);
 
     // Start video running
