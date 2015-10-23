@@ -20,6 +20,9 @@
 #ifndef KEYMONITOR_H
 #define KEYMONITOR_H
 
+#include <QObject>
+#include <X11/Xlib.h>
+
 #include "stoppablethread.h"
 #include "settings.h"
 
@@ -33,10 +36,28 @@
  */
 class KeyMonitor : public StoppableThread
 {
+    Q_OBJECT
+
 public:
     KeyMonitor(Settings* _settings);
+    virtual ~KeyMonitor();
+
+signals:
+    /*!
+     * This signal is raised when user presses a key to create a marker.
+     */
+    void keyPressed(QString _markerType);
+
+protected:
+    virtual void stoppableRun();
 
 private:
+    Display*        dpy;
+    unsigned int    keyCodes[MAX_MARKERS];
+    QString         keyTypes[MAX_MARKERS];
+    unsigned int    modifiers;
+    Window          rootWnd;
+
     // true if one instance of the class already exists---used to prevent multiple instances
     static volatile bool existsInstance;
 };

@@ -19,6 +19,7 @@
 
 #include <QException>
 #include <QDebug>
+
 #include "keymonitor.h"
 
 volatile bool KeyMonitor::existsInstance = false;
@@ -37,4 +38,62 @@ KeyMonitor::KeyMonitor(Settings* _settings)
     {
         existsInstance = true;
     }
+
+    int i;
+
+    dpy       = XOpenDisplay(0);
+    rootWnd   = DefaultRootWindow(dpy);
+    modifiers = 0;  // grab only the keys pressed without any modifiers (like
+                    // Ctrl, Shift, etc.). Note that no keys will be grabbed if
+                    // NumLock is on.
+
+    for (i=0; i<MAX_MARKERS; i++)
+    {
+        keyTypes[i] = _settings->markerType[i];
+        keyCodes[i] = XKeysymToKeycode(dpy, _settings->markerKeySym[i]);
+        XGrabKey(dpy, keyCodes[i], modifiers, rootWnd, true, GrabModeAsync, GrabModeAsync);
+    }
+
+    XSelectInput(dpy, rootWnd, KeyPressMask);
+}
+
+
+void KeyMonitor::stoppableRun()
+{
+    int     i;
+    XEvent  ev;
+
+    while(!shouldStop)
+    {
+        XNextEvent(dpy, &ev);
+
+        // ignore anything other than keypress events
+        if(ev.type != KeyPress)
+        {
+            continue;
+        }
+
+        // find the marker type
+        for(i=0; i<MAX_MARKERS; i++)
+        {
+            if((((XKeyEvent&)ev).keycode) == keyCodes[i])
+            {
+                emit keyPressed(keyTypes[i]);
+                break;  // if keyCodes has several identical entries, create only 1 event
+            }
+        }
+    }
+}
+
+
+KeyMonitor::~KeyMonitor()
+{
+    int i;
+
+    for(i=0; i<MAX_MARKERS; i++)
+    {
+        XUngrabKey(dpy, keyCodes[i], modifiers, rootWnd);
+    }
+
+    XCloseDisplay(dpy);
 }

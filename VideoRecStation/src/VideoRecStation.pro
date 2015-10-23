@@ -60,6 +60,7 @@ LIBS += -L/usr/local/lib \
     -L/usr/lib \
     -lasound \
     -ldc1394 \
-    -ljpeg
+    -ljpeg \
+    -lX11
 RESOURCES += 
 DEFINES += __STDC_LIMIT_MACROS
