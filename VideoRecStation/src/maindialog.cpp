@@ -162,6 +162,7 @@ void MainDialog::onStartRec()
     ui.stopButton->setEnabled(true);
     ui.startButton->setEnabled(false);
     ui.exitButton->setEnabled(false);
+    ui.markersWidget->setEnabled(true);
 
     for (unsigned int i=0; i<numCameras; i++)
     {
@@ -188,6 +189,8 @@ void MainDialog::onStopRec()
     ui.stopButton->setEnabled(false);
     ui.startButton->setEnabled(true);
     ui.exitButton->setEnabled(true);
+    ui.markersWidget->setEnabled(false);
+    ui.markersWidget->clear();
 
     for (unsigned int i=0; i<numCameras; i++)
     {

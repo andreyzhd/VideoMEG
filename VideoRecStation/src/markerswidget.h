@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+#include "keymonitor.h"
+
 namespace Ui {
 class MarkersWidget;
 }
@@ -14,9 +16,17 @@ class MarkersWidget : public QWidget
 public:
     explicit MarkersWidget(QWidget *parent = 0);
     ~MarkersWidget();
+    void setEnabled(bool _enabled);
+    void clear();
+
+public slots:
+    void onKeyPressed(QString _markerType, uint64_t _timestamp);
 
 private:
-    Ui::MarkersWidget *ui;
+    Ui::MarkersWidget   *ui;
+
+    KeyMonitor          keyMonitor();
+    QString             markersStoragePath;
 };
 
 #endif // MARKERSWIDGET_H

@@ -21,6 +21,7 @@
 #define SETTINGS_H_
 
 #include <QRect>
+#include <QString>
 #include "config.h"
 
 //! Application-wide settings preserved across multiple invocations.
