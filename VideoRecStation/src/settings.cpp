@@ -33,18 +33,10 @@ Settings::Settings()
     // Don't allow to create more than one instance. Because on the atomicity
     // of test-and-set is not guaranteed, it might fail in (hopefully) very rare
     // cases of race condition.
-    if (existsInstance)
-    {
-        qDebug() << "Cannot create more than one instance of Settings" << endl;
-        throw QException();
-    }
-    else
-    {
-        existsInstance = true;
-    }
-
+	Q_ASSERT(!existsInstance);
+    existsInstance = true;
+	
     QSettings settings(ORG_NAME, APP_NAME);
-
 
     //---------------------------------------------------------------------
     // Video settings
@@ -161,4 +153,10 @@ Settings::~Settings()
 
     settings.sync();
     existsInstance = false;
+}
+
+Settings& Settings::getSettings()
+{
+    static Settings globalInstance;
+    return(globalInstance);
 }

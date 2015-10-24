@@ -21,24 +21,22 @@
 #define SETTINGS_H_
 
 #include <QRect>
-#include <common.h>
+#include "config.h"
 
 //! Application-wide settings preserved across multiple invocations.
 /*!
- * This class contains application-wide settings read from disc. To read the
- * settings simply create the instance of this class and read the values from
- * the corresponding public variables of the class. You can modify the values,
- * upon destruction these will be saved to the disk. Only one instance of the
- * class is allowed, if you try to create the second instance before
- * destroying the existing one, the constructor will trow an exception. This
- * class should be made completely thread-safe (CURRENTLY IT IS NOT).
+ * This class follows singleton pattern. It encapsulates application-wide
+ * settings stored on the disc. To read the settings simply get the instance of
+ * this class with getSettings and read the values from the corresponding
+ * public variables. You can modify the values, upon destruction these will be
+ * saved to the disk. To make sure that the instance is not destroyed
+ * prematurely, always pass it by reference (Settings&)---avoid pointers.
+ *
+ * This class should be made completely thread-safe (CURRENTLY IT IS NOT).
  */
 class Settings {
     // TODO: make the class thread-safe
 public:
-    Settings();
-    ~Settings();
-
     // video
     int             jpgQuality;
     bool            color;
@@ -72,7 +70,12 @@ public:
     QString         markerType[MAX_MARKERS];
     QString         markersStoragePath;
 
+    static Settings&    getSettings();
+
 private:
+    Settings();
+    ~Settings();
+
     // true if one instance of the class already exists---used to prevent multiple instances
     static volatile bool existsInstance;
 };

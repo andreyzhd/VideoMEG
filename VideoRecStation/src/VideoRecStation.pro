@@ -35,7 +35,7 @@ HEADERS += settings.h \
     videowidget.h \
     maindialog.h \
     keymonitor.h \
-    fixx11.h \
+    fixx11h.h \
     markerswidget.h
 SOURCES += settings.cpp \
     videodialog.cpp \
@@ -68,3 +68,4 @@ LIBS += -L/usr/local/lib \
     -lX11
 RESOURCES += 
 DEFINES += __STDC_LIMIT_MACROS
+CONFIG += c++11

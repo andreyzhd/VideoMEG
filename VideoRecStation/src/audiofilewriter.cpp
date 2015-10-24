@@ -23,14 +23,15 @@
 
 #include "config.h"
 #include "audiofilewriter.h"
+#include "settings.h"
 
 using namespace std;
 
-AudioFileWriter::AudioFileWriter(CycDataBuffer* _cycBuf, const char* _path, Settings* _settings)
+AudioFileWriter::AudioFileWriter(CycDataBuffer* _cycBuf, const char* _path)
     :   FileWriter(_cycBuf, _path, "_audio", "aud", 0)
 {
     uint32_t    nchans = N_CHANS;
-    uint32_t    srate = _settings->sampRate;
+    uint32_t    srate = Settings::getSettings().sampRate;
     uint32_t    ver = AUDIO_FILE_VERSION;
 
     // Create header

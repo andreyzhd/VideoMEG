@@ -24,7 +24,7 @@
 #include <QObject>
 
 #include "stoppablethread.h"
-#include "settings.h"
+#include "config.h"
 
 #include <X11/Xlib.h>   // These two files have to be included next to each
 #include "fixx11h.h"    // other in this specific order. Otherwise things
@@ -43,7 +43,7 @@ class KeyMonitor : public StoppableThread
     Q_OBJECT
 
 public:
-    KeyMonitor(Settings* _settings);
+    KeyMonitor();
     virtual ~KeyMonitor();
 
 signals:

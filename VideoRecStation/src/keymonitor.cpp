@@ -22,25 +22,20 @@
 #include <QDebug>
 
 #include "keymonitor.h"
+#include "settings.h"
 
 volatile bool KeyMonitor::existsInstance = false;
 
-KeyMonitor::KeyMonitor(Settings* _settings)
+KeyMonitor::KeyMonitor()
 {
     // Don't allow to create more than one instance. Because on the atomicity
     // of test-and-set is not guaranteed, it might fail in (hopefully) very rare
     // cases of race condition.
-    if (existsInstance)
-    {
-        qDebug() << "Cannot create more than one instance of KeyMonitor" << endl;
-        throw QException();
-    }
-    else
-    {
-        existsInstance = true;
-    }
+    Q_ASSERT(!existsInstance);
+    existsInstance = true;
 
-    int i;
+    int         i;
+    Settings&   settings = Settings::getSettings();
 
     dpy       = XOpenDisplay(0);
     rootWnd   = DefaultRootWindow(dpy);
@@ -50,8 +45,8 @@ KeyMonitor::KeyMonitor(Settings* _settings)
 
     for (i=0; i<MAX_MARKERS; i++)
     {
-        keyTypes[i] = _settings->markerType[i];
-        keyCodes[i] = XKeysymToKeycode(dpy, _settings->markerKeySym[i]);
+        keyTypes[i] = settings.markerType[i];
+        keyCodes[i] = XKeysymToKeycode(dpy, settings.markerKeySym[i]);
         XGrabKey(dpy, keyCodes[i], modifiers, rootWnd, true, GrabModeAsync, GrabModeAsync);
     }
 

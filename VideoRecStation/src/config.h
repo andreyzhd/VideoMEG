@@ -23,6 +23,7 @@
 // Camera configuration
 #define VIDEO_DEV_PATH      "/dev/video0"
 #define N_CAMERA_BUFFERS    1
+#define MAX_CAMERAS         6
 
 #define SHUTTER_ADDR        0xf0081c
 #define SHUTTER_MIN_VAL     1
@@ -72,6 +73,11 @@
 // Used for storing application settings
 #define ORG_NAME "HelsinkiVideoMEG"
 #define APP_NAME "VideoRecStation"
+
+// Markers configuration
+#define MAX_MARKERS         4
+#define KEY_REP_SUPPRES     1000                    // milliseconds
+
 
 #define CONFIG_H_
 

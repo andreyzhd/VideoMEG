@@ -46,7 +46,6 @@ class MainDialog : public QMainWindow
 public:
     MainDialog(QWidget *parent = 0);
     ~MainDialog();
-    Settings            settings;
 
 public slots:
     void onStartRec();
@@ -85,6 +84,8 @@ private:
     int                 volIndNext;
     SpeakerThread*      speakerThread;
     NonBlockingBuffer*  speakerBuffer;
+
+    Settings&           settings = Settings::getSettings();
 };
 
 #endif // MAINDIALOG_H

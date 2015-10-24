@@ -24,7 +24,7 @@
 
 using namespace std;
 
-SpeakerThread::SpeakerThread(NonBlockingBuffer* _buffer, Settings* _settings)
+SpeakerThread::SpeakerThread(NonBlockingBuffer* _buffer)
 {
     int                     rc;
     snd_pcm_hw_params_t*    params;
@@ -32,10 +32,9 @@ SpeakerThread::SpeakerThread(NonBlockingBuffer* _buffer, Settings* _settings)
     snd_pcm_uframes_t       framesPerPeriod;
 
     buffer = _buffer;
-    settings = _settings;
 
     // Open PCM device for playback
-    rc = snd_pcm_open(&sndHandle, settings->outAudioDev.toLocal8Bit().data(), SND_PCM_STREAM_PLAYBACK, 0);
+    rc = snd_pcm_open(&sndHandle, settings.outAudioDev.toLocal8Bit().data(), SND_PCM_STREAM_PLAYBACK, 0);
     if (rc < 0)
     {
         cerr << "unable to open pcm device: " << snd_strerror(rc) << endl;
@@ -51,15 +50,15 @@ SpeakerThread::SpeakerThread(NonBlockingBuffer* _buffer, Settings* _settings)
     snd_pcm_hw_params_set_channels(sndHandle, params, N_CHANS);
 
     // Set sampling rate
-    sampRate = settings->sampRate;
+    sampRate = settings.sampRate;
     snd_pcm_hw_params_set_rate_near(sndHandle, params, &sampRate, NULL);
 
     // Set period size
-    framesPerPeriod = settings->framesPerPeriod;
+    framesPerPeriod = settings.framesPerPeriod;
     snd_pcm_hw_params_set_period_size_near(sndHandle, params, &framesPerPeriod, NULL);
 
     /* Set number of periods */
-    if (snd_pcm_hw_params_set_periods(sndHandle, params, settings->nPeriods, 0) < 0)
+    if (snd_pcm_hw_params_set_periods(sndHandle, params, settings.nPeriods, 0) < 0)
     {
       cerr << "Error setting periods" << endl;
       abort();
@@ -76,17 +75,17 @@ SpeakerThread::SpeakerThread(NonBlockingBuffer* _buffer, Settings* _settings)
     // Verify the parameters
     sampRate = 0;
     snd_pcm_hw_params_get_rate(params, &sampRate, NULL);
-    if (sampRate != settings->sampRate)
+    if (sampRate != settings.sampRate)
     {
-        cerr << "unable to set sampling rate: requested " << settings->sampRate << ", actual " << sampRate << endl;
+        cerr << "unable to set sampling rate: requested " << settings.sampRate << ", actual " << sampRate << endl;
         exit(EXIT_FAILURE);
     }
 
     framesPerPeriod = 0;
     snd_pcm_hw_params_get_period_size(params, &framesPerPeriod, NULL);
-    if (settings->framesPerPeriod != framesPerPeriod)
+    if (settings.framesPerPeriod != framesPerPeriod)
     {
-        cerr << "unable to set frames per period: requested " << settings->framesPerPeriod << ", actual " << framesPerPeriod << endl;
+        cerr << "unable to set frames per period: requested " << settings.framesPerPeriod << ", actual " << framesPerPeriod << endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -113,7 +112,7 @@ void SpeakerThread::stoppableRun()
     // Start the playback loop
     while(true)
     {
-        rc = snd_pcm_writei(sndHandle, buffer->getChunk(), settings->framesPerPeriod);
+        rc = snd_pcm_writei(sndHandle, buffer->getChunk(), settings.framesPerPeriod);
         if (rc == -EPIPE)
         {
             /* EPIPE means underrun */
@@ -124,7 +123,7 @@ void SpeakerThread::stoppableRun()
         {
             cerr << "error from writei: " << snd_strerror(rc) << endl;
         }
-        else if (rc != (int)settings->framesPerPeriod)
+        else if (rc != (int)settings.framesPerPeriod)
         {
             cerr << "short write, write " << rc << " frames" << endl;
         }
