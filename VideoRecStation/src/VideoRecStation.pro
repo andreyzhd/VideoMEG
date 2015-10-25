@@ -36,7 +36,8 @@ HEADERS += settings.h \
     maindialog.h \
     keymonitor.h \
     fixx11h.h \
-    markerswidget.h
+    markerswidget.h \
+    markerfilewriter.h
 SOURCES += settings.cpp \
     videodialog.cpp \
     filewriter.cpp \
@@ -53,7 +54,8 @@ SOURCES += settings.cpp \
     main.cpp \
     maindialog.cpp \
     keymonitor.cpp \
-    markerswidget.cpp
+    markerswidget.cpp \
+    markerfilewriter.cpp
 FORMS += videodialog.ui \
     maindialog.ui \
     markerswidget.ui

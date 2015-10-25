@@ -5,6 +5,7 @@
 #include <QTableWidgetItem>
 
 #include "keymonitor.h"
+#include "markerfilewriter.h"
 
 namespace Ui {
 class MarkersWidget;
@@ -16,7 +17,7 @@ class MarkersWidget : public QWidget
 
 public:
     explicit MarkersWidget(QWidget *parent = 0);
-    ~MarkersWidget();
+    virtual ~MarkersWidget();
     void setEnabled(bool _enabled);
 
 public slots:
@@ -31,6 +32,7 @@ private:
     QString             markersStoragePath;
     int                 rowCnt;
     QTableWidgetItem    table[MAX_MARKERS][3];
+    MarkerFileWriter    markerFiles[MAX_MARKERS];
     bool                isEnabled;
     int                 curEditIndx;        // index of the marker currently being edited in the text field
 };

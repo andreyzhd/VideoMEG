@@ -45,7 +45,7 @@ class MainDialog : public QMainWindow
 
 public:
     MainDialog(QWidget *parent = 0);
-    ~MainDialog();
+    virtual ~MainDialog();
 
 public slots:
     void onStartRec();

@@ -61,6 +61,8 @@ void MarkersWidget::onKeyPressed(QString _markerType, quint64 _timestamp)
 
     ui->markerTable->scrollToBottom();
 
+    markerFiles[rowCnt].init(_timestamp, _markerType, table[rowCnt][2].text());
+
     rowCnt++;
 }
 
@@ -71,8 +73,15 @@ void MarkersWidget::setEnabled(bool _enabled)
     ui->markerTable->setEnabled(_enabled);
 
     if(!_enabled)
-    {   // markerTextEdit might need to be disabled even if MarkersWidget is enabled.
+    {
+        // markerTextEdit might need to be disabled even if MarkersWidget is enabled.
         ui->markerTextEdit->setEnabled(_enabled);
+
+        // flush the marker files
+        for(int i=0; i<rowCnt; i++)
+        {
+            markerFiles[i].flush();
+        }
     }
 }
 
@@ -104,5 +113,6 @@ void MarkersWidget::onTextChanged()
     if(curEditIndx != -1)
     {
         table[curEditIndx][2].setText(ui->markerTextEdit->toPlainText());
+        markerFiles[curEditIndx].setComment(ui->markerTextEdit->toPlainText());
     }
 }

@@ -139,6 +139,14 @@ void MainDialog::updateDiskSpace()
 MainDialog::~MainDialog()
 {
     // TODO: Implement proper destructor
+
+    if(speakerThread)
+    {
+        speakerThread->stop();
+    }
+    microphoneThread->stop();
+    audioFileWriter->stop();
+
     delete statusLeft;
     delete statusRight;
     delete updateTimer;

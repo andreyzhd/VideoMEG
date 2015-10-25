@@ -31,6 +31,7 @@ public:
     //int heightForWidth(int _w);
     volatile bool rotate;
     volatile bool limitDisplaySize;
+    virtual ~VideoWidget();
 
 public slots:
     void onDrawFrame(unsigned char* _jpegBuf);
