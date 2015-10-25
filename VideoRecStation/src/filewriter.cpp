@@ -89,9 +89,9 @@ void FileWriter::stoppableRun()
         {
             if (!prevIsRec)
             {
+                // TODO: replace with code that uses Qt functions
                 timeNow = time(NULL);
                 timeNowParsed = localtime(&timeNow);
-                // TODO: replace sprintf with C++ strings
                 sprintf(nameBuf, "%s/%04i-%02i-%02i--%02i-%02i-%02i%s_%02i.%s",
                         path,
                         timeNowParsed->tm_year+1900,

@@ -190,7 +190,6 @@ void MainDialog::onStopRec()
     ui.startButton->setEnabled(true);
     ui.exitButton->setEnabled(true);
     ui.markersWidget->setEnabled(false);
-    ui.markersWidget->clear();
 
     for (unsigned int i=0; i<numCameras; i++)
     {

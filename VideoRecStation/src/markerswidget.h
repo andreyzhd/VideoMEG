@@ -18,10 +18,11 @@ public:
     explicit MarkersWidget(QWidget *parent = 0);
     ~MarkersWidget();
     void setEnabled(bool _enabled);
-    void clear();
 
 public slots:
     void onKeyPressed(QString _markerType, quint64 _timestamp);
+    void onItemSelectionChanged();
+    void onTextChanged();
 
 private:
     Ui::MarkersWidget   *ui;
@@ -31,6 +32,7 @@ private:
     int                 rowCnt;
     QTableWidgetItem    table[MAX_MARKERS][3];
     bool                isEnabled;
+    int                 curEditIndx;        // index of the marker currently being edited in the text field
 };
 
 #endif // MARKERSWIDGET_H
