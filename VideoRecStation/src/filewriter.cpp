@@ -116,7 +116,7 @@ void FileWriter::stoppableRun()
             }
 
             chunkSz = chunkAttrib.chunkSize;
-            outData.write((const char*)(&(chunkAttrib.timestamp)), sizeof(uint64_t));
+            outData.write((const char*)(&(chunkAttrib.timestamp)), sizeof(quint64));
             outData.write((const char*)(&chunkSz), sizeof(uint32_t));
             outData.write((const char*)databuf, chunkAttrib.chunkSize);
         }

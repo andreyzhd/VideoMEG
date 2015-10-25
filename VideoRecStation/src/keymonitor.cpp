@@ -43,7 +43,7 @@ KeyMonitor::KeyMonitor()
                     // Ctrl, Shift, etc.). Note that no keys will be grabbed if
                     // NumLock is on.
 
-    for (i=0; i<MAX_MARKERS; i++)
+    for (i=0; i<MAX_MARKER_TYPES; i++)
     {
         keyTypes[i] = settings.markerType[i];
         keyCodes[i] = XKeysymToKeycode(dpy, settings.markerKeySym[i]);
@@ -59,8 +59,8 @@ void KeyMonitor::stoppableRun()
     int             i;
     XEvent          ev;
     struct timespec utimestamp;
-    u_int64_t       timestamp;
-    u_int64_t       lastSentTimestamp = 0;
+    quint64         timestamp;
+    quint64         lastSentTimestamp = 0;
 
     while(!shouldStop)
     {
@@ -73,7 +73,7 @@ void KeyMonitor::stoppableRun()
         }
 
         // find the marker type
-        for(i=0; i<MAX_MARKERS; i++)
+        for(i=0; i<MAX_MARKER_TYPES; i++)
         {
             if((((XKeyEvent&)ev).keycode) == keyCodes[i])
             {
@@ -97,7 +97,7 @@ KeyMonitor::~KeyMonitor()
 {
     int i;
 
-    for(i=0; i<MAX_MARKERS; i++)
+    for(i=0; i<MAX_MARKER_TYPES; i++)
     {
         XUngrabKey(dpy, keyCodes[i], modifiers, rootWnd);
     }

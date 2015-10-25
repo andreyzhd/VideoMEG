@@ -75,9 +75,9 @@
 #define APP_NAME "VideoRecStation"
 
 // Markers configuration
-#define MAX_MARKERS         4
-#define KEY_REP_SUPPRES     1000                    // milliseconds
-
+#define MAX_MARKER_TYPES    4
+#define MAX_MARKERS         10000
+#define KEY_REP_SUPPRES     1000        // milliseconds
 
 #define CONFIG_H_
 

@@ -122,7 +122,7 @@ void MicrophoneThread::stoppableRun()
 {
     int                 rc;
     struct timespec     timestamp;
-    uint64_t            msec;
+    quint64            msec;
     struct sched_param  sch_param;
     ChunkAttrib         chunkAttrib;
 

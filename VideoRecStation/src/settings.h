@@ -67,8 +67,8 @@ public:
     bool            metersUseDB;
 
     // markers
-    unsigned int    markerKeySym[MAX_MARKERS]; // codes (e.g. for XK_F8, XK_F9, etc) taken from <X11/Xutil.h>
-    QString         markerType[MAX_MARKERS];
+    unsigned int    markerKeySym[MAX_MARKER_TYPES]; // codes (e.g. for XK_F8, XK_F9, etc) taken from <X11/Xutil.h>
+    QString         markerType[MAX_MARKER_TYPES];
     QString         markersStoragePath;
 
     static Settings&    getSettings();

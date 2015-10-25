@@ -100,7 +100,7 @@ Settings::Settings()
     dummyMode = settings.value("misc/dummy_mode", false).toBool();
 
     // Markers
-    for (unsigned int i=0; i<MAX_MARKERS; i++)
+    for (unsigned int i=0; i<MAX_MARKER_TYPES; i++)
     {
         markerKeySym[i] = settings.value(QString("markers/KeySym_%1").arg(i+1), 0xffc6+i).toUInt(); // 0xffc6 corresponds to XK_F9
         markerType[i] = settings.value(QString("markers/type_%1").arg(i+1), QString("marker %1").arg(i+1)).toString();
@@ -143,7 +143,7 @@ Settings::~Settings()
     settings.setValue("misc/dummy_mode", dummyMode);
 
     // Markers
-    for (unsigned int i=0; i<MAX_MARKERS; i++)
+    for (unsigned int i=0; i<MAX_MARKER_TYPES; i++)
     {
         settings.setValue(QString("markers/KeySym_%1").arg(i+1), markerKeySym[i]);
         settings.setValue(QString("markers/type_%1").arg(i+1), markerType[i]);

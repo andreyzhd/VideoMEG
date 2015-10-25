@@ -2,6 +2,7 @@
 #define MARKERSWIDGET_H
 
 #include <QWidget>
+#include <QTableWidgetItem>
 
 #include "keymonitor.h"
 
@@ -20,13 +21,16 @@ public:
     void clear();
 
 public slots:
-    void onKeyPressed(QString _markerType, uint64_t _timestamp);
+    void onKeyPressed(QString _markerType, quint64 _timestamp);
 
 private:
     Ui::MarkersWidget   *ui;
 
-    KeyMonitor          keyMonitor();
+    KeyMonitor          keyMonitor;
     QString             markersStoragePath;
+    int                 rowCnt;
+    QTableWidgetItem    table[MAX_MARKERS][3];
+    bool                isEnabled;
 };
 
 #endif // MARKERSWIDGET_H
