@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+TODO: 
+test script in production videomeg machine
+put VIDEODATA_PATH and TIMING_CH e.g. as command line arguments
+---
+
+
 Read VideoMEG event files corresponding to a fiff file. Create a corresponding 
 lisp event file that can be used in Graph. 
 
