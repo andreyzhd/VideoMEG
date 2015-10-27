@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 """
-TODO: 
-test script in production videomeg machine
-put VIDEODATA_PATH and TIMING_CH e.g. as command line arguments
----
-
 
 Read VideoMEG event files corresponding to a fiff file. Create a corresponding 
 lisp event file that can be used in Graph. 
 
-Usage: events_to_lisp.py [fiffname]
 Python 2.7
 
 Note: graph does not understand utf-8. Thus any event code / comment characters 
@@ -19,7 +14,16 @@ writing the lisp event file in ISO-8859-1 encoding.
 @author: jussi
 """
 
-from __future__ import print_function
+USAGE = """
+
+Usage: events_to_lisp.py fiff_name marker_path timing_ch
+
+fiff_name    name of fiff file to find markers for
+marker_path  where to find marker files
+timing_ch    MEG video timing channel, e.g. 'STI016'
+"""
+
+
 import glob
 import os
 import mne
@@ -27,20 +31,20 @@ import pyvideomeg
 import sys
 
 
-VIDEODATA_PATH = '/videodat/markers'  # searched for event files
 EVENTFILES_GLOB = '*'  # this glob should match all event files
-TIMING_CH = 'STI016'
 
 # string templates for lisp event file
 LISP_HEADER_STR = '(videomeg::saved-event-list\n :source-file \"{sourcefile}\"\n :events \'(\n'
-LISP_EVENT_STR = '  ((:time {time}) (:class :manual) (:length 0.0) (:annotation \"{annotation}\"))\n'
+LISP_EVENT_STR = '  ((:time {time:.3f}) (:class :manual) (:length 0.0) (:annotation \"{annotation}\"))\n'
 
 
-def fiff_timerange(fname):
+def fiff_timerange(fname, timing_ch):
     """ Return start and end time of a fiff file in Unix epoch """
     raw = mne.io.Raw(fname, allow_maxshield=True)
    # load the timing channel
-    picks_timing = mne.pick_types(raw.info, meg=False, include=[TIMING_CH])
+    picks_timing = mne.pick_types(raw.info, meg=False, include=[timing_ch])
+    if not picks_timing:
+        sys.exit('Cannot find specified timing channel')
     dt_timing = raw[picks_timing,:][0].squeeze()
     # interpolation is useless here, should be fixed if too slow    
     meg_ts = pyvideomeg.comp_tstamps(dt_timing, raw.info['sfreq'])
@@ -58,11 +62,11 @@ def leading_substring(s1, s2):
         k += 1
     return s2[:k-1]
         
-def event_filenames(t0, t1):
+def event_filenames(videodata_path, t0, t1):
     """ Return names of event files between times t0 and t1 """
     # find candidate filenames
     pt = leading_substring(str(t0), str(t1))
-    fnames = glob.glob(VIDEODATA_PATH+'/'+pt+EVENTFILES_GLOB)
+    fnames = glob.glob(videodata_path+'/'+pt+EVENTFILES_GLOB)
     return [fi for fi in fnames if timestamp(fi) >= t0 and timestamp(fi) <= t1]
     
 def event_data(fname):
@@ -72,16 +76,20 @@ def event_data(fname):
     return li[0], li[1]
 
 
-if len(sys.argv) != 2:
-    raise Exception('need one argument: name of fiff file')
+if len(sys.argv) != 4:
+    sys.exit(USAGE)
+    
 fiffname = sys.argv[1]
+videodata_path = sys.argv[2]
+timing_ch = sys.argv[3]
 fiffbase = os.path.basename(fiffname)
 outfn = os.path.splitext(fiffname)[0] + '.evl'
-(t0,t1) = fiff_timerange(fiffname)
-evfiles = event_filenames(t0, t1)
-print('')
+
+(t0,t1) = fiff_timerange(fiffname, timing_ch)
+evfiles = event_filenames(videodata_path, t0, t1)
+
 if not evfiles:
-    print('No event files corresponding to fiff time range:\n', int(t0), '-', int(t1))
+    print('\nNo event files corresponding to fiff time range:\n', int(t0), '-', int(t1))
 else:
     with open(outfn, 'w') as outfile:
         outfile.write(LISP_HEADER_STR.format(sourcefile=fiffbase))
@@ -90,7 +98,7 @@ else:
             event, comment = event_data(evfile)
             outfile.write(LISP_EVENT_STR.format(time=t, annotation=event+': '+comment))
         outfile.write('))')  # terminate lisp block
-    print('Wrote',len(evfiles),'events to',outfn)
+    print('\nWrote',len(evfiles),'events to',outfn)
     
     
 
