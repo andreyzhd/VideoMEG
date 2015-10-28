@@ -16,11 +16,11 @@ writing the lisp event file in ISO-8859-1 encoding.
 
 USAGE = """
 
-Usage: events_to_lisp.py fiff_name marker_path timing_ch
+Usage: events_to_lisp.py fiff_name marker_path [timing_ch]
 
 fiff_name    name of fiff file to find markers for
 marker_path  where to find marker files
-timing_ch    MEG video timing channel, e.g. 'STI016'
+timing_ch    MEG video timing channel, e.g. 'STI016'. Defaults to 'STI101' 
 """
 
 
@@ -31,17 +31,20 @@ import pyvideomeg
 import sys
 
 
-EVENTFILES_GLOB = '*'  # this glob should match all event files
+DEFAULT_TIMING_CH = 'STI101'
+# this glob should match all event files; add extension if it's implemented
+EVENTFILES_GLOB = '*'
 
 # string templates for lisp event file
 LISP_HEADER_STR = '(videomeg::saved-event-list\n :source-file \"{sourcefile}\"\n :events \'(\n'
 LISP_EVENT_STR = '  ((:time {time:.3f}) (:class :manual) (:length 0.0) (:annotation \"{annotation}\"))\n'
 
 
+
 def fiff_timerange(fname, timing_ch):
     """ Return start and end time of a fiff file in Unix epoch """
     raw = mne.io.Raw(fname, allow_maxshield=True)
-   # load the timing channel
+    # load the timing channel
     picks_timing = mne.pick_types(raw.info, meg=False, include=[timing_ch])
     if not picks_timing:
         sys.exit('Cannot find specified timing channel')
@@ -64,9 +67,10 @@ def leading_substring(s1, s2):
         
 def event_filenames(videodata_path, t0, t1):
     """ Return names of event files between times t0 and t1 """
-    # find candidate filenames
+    # find candidate filenames based on timestamp
     pt = leading_substring(str(t0), str(t1))
     fnames = glob.glob(videodata_path+'/'+pt+EVENTFILES_GLOB)
+    # filter according to time    
     return [fi for fi in fnames if timestamp(fi) >= t0 and timestamp(fi) <= t1]
     
 def event_data(fname):
@@ -76,12 +80,19 @@ def event_data(fname):
     return li[0], li[1]
 
 
-if len(sys.argv) != 4:
+if not len(sys.argv) in [3,4]:
     sys.exit(USAGE)
-    
+        
 fiffname = sys.argv[1]
+if not os.path.isfile(fiffname):
+    sys.exit('Input file {0} not found'.format(fiffname))
 videodata_path = sys.argv[2]
-timing_ch = sys.argv[3]
+
+if len(sys.argv) == 4:
+    timing_ch = sys.argv[3]
+else:
+    timing_ch = DEFAULT_TIMING_CH
+
 fiffbase = os.path.basename(fiffname)
 outfn = os.path.splitext(fiffname)[0] + '.evl'
 
