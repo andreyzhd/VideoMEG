@@ -50,16 +50,16 @@ function [ts, ids, site_id, is_sender, frame_sizes, frame_ptrs] = load_video123(
     frame_ptrs = [];
     
     while(ftell(inpf) < inp_sz)
-        tstamp = fread(inpf, 1, 'uint64');
+        tstamp = fread(inpf, 1, 'uint64=>uint64');
         if(ver > 1)
-            chunk_id = fread(inpf, 1, 'uint64');
+            chunk_id = fread(inpf, 1, 'uint64=>uint64');
         else
             chunk_id = -1;
         end
                 
         chunk_sz = fread(inpf, 1, 'uint32');
         frame_ptrs = [frame_ptrs, ftell(inpf)];
-        chunk = fread(inpf, chunk_sz, 'uchar');
+        chunk = fread(inpf, chunk_sz, 'uchar=>uchar');
         
         ts = [ts, tstamp];
         ids = [ids, chunk_id];
