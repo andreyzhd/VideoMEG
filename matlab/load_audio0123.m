@@ -1,6 +1,5 @@
-function [ts, ids, offset, data, srate, site_id, is_sender] = load_audio0123(filename, fix_tstamps)
-% If FIX_TSTAMPS is true, try to fix the timestamps so that all the
-% buffers have approximately equal length
+function [ts, ids, offset, data, srate, site_id, is_sender] = load_audio0123(filename)
+% Read an audio file from the disk.
     
 %--------------------------------------------------------------------------
 %   Copyright (C) 2015 BioMag Laboratory, Helsinki University Central Hospital
@@ -77,9 +76,7 @@ function [ts, ids, offset, data, srate, site_id, is_sender] = load_audio0123(fil
     for i = 1 : numof_chunks
         PRINT_INTERVAL=1e6;  % print status messages at this interval
         [ts(i), ids(i), blen] = read_attrib(h, ver);
-        %	if i == 1
-	%  fprintf('load_audio_0123: first packet id: %.0f\n',ids(1));
-	% end
+
         assert(blen == buflen);
         data(:,i) = fread(h, buflen/2, 'int16');
         
@@ -88,31 +85,7 @@ function [ts, ids, offset, data, srate, site_id, is_sender] = load_audio0123(fil
         end
     end
     fclose(h);
-    %    fprintf('load_audio_0123:...done\n');
     data = reshape(data, nchans, frames_per_buf*numof_chunks)';
-    
-    % fix the timestamps
-    if fix_tstamps
-        p = polyfit([1:length(ts)]', ts, 1);
-        nts = round(p(1) * [1:length(ts)]' + p(2));
-        
-        % The timestamps can be only shifted into the past, not into the
-        % future. This is because we know that each buffer was acquired
-        % before (and never after) the corresponding timestamp.
-        nts = nts - max(nts - ts);
-        
-        % DEBUG
-        figure;
-        plot(nts - ts);
-        xlabel('buffer number');
-        ylabel('buffer time adjustment, msec');
-        
-        fprintf('\n\nOriginal buffer lengths:\tmean:\t%0.2f\t\tstd:\t%0.2f\t\tmin:\t%0.2f\t\tmax:\t%0.2f\n', mean(diff(ts)), std(diff(ts)), min(diff(ts)), max(diff(ts)));
-        fprintf('Fixed buffer lengths:\t\tmean:\t%0.2f\t\tstd:\t%0.2f\t\tmin:\t%0.2f\t\tmax:\t%0.2f\n\n', mean(diff(nts)), std(diff(nts)), min(diff(nts)), max(diff(nts)));
-        % ~DEBUG
-        
-        ts = nts;
-    end
 end
 
 
