@@ -89,9 +89,9 @@ void FileWriter::stoppableRun()
         {
             if (!prevIsRec)
             {
+                // TODO: replace with code that uses Qt functions
                 timeNow = time(NULL);
                 timeNowParsed = localtime(&timeNow);
-                // TODO: replace sprintf with C++ strings
                 sprintf(nameBuf, "%s/%04i-%02i-%02i--%02i-%02i-%02i%s_%02i.%s",
                         path,
                         timeNowParsed->tm_year+1900,
@@ -116,7 +116,7 @@ void FileWriter::stoppableRun()
             }
 
             chunkSz = chunkAttrib.chunkSize;
-            outData.write((const char*)(&(chunkAttrib.timestamp)), sizeof(uint64_t));
+            outData.write((const char*)(&(chunkAttrib.timestamp)), sizeof(quint64));
             outData.write((const char*)(&chunkSz), sizeof(uint32_t));
             outData.write((const char*)databuf, chunkAttrib.chunkSize);
         }

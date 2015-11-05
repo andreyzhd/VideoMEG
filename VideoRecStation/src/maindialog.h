@@ -45,8 +45,7 @@ class MainDialog : public QMainWindow
 
 public:
     MainDialog(QWidget *parent = 0);
-    ~MainDialog();
-    Settings            settings;
+    virtual ~MainDialog();
 
 public slots:
     void onStartRec();
@@ -60,8 +59,6 @@ public slots:
 
 private:
     void initVideo();
-    void setupVideoDialog(unsigned int);
-    void cleanVideoDialog(unsigned int);
 
     Ui::MainDialogClass ui;
 
@@ -87,6 +84,8 @@ private:
     int                 volIndNext;
     SpeakerThread*      speakerThread;
     NonBlockingBuffer*  speakerBuffer;
+
+    Settings&           settings = Settings::getSettings();
 };
 
 #endif // MAINDIALOG_H

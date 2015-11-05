@@ -23,6 +23,7 @@
 #include <math.h>
 
 #include <QStorageInfo>
+#include <QDebug>
 
 #include "config.h"
 #include "maindialog.h"
@@ -138,6 +139,14 @@ void MainDialog::updateDiskSpace()
 MainDialog::~MainDialog()
 {
     // TODO: Implement proper destructor
+
+    if(speakerThread)
+    {
+        speakerThread->stop();
+    }
+    microphoneThread->stop();
+    audioFileWriter->stop();
+
     delete statusLeft;
     delete statusRight;
     delete updateTimer;
@@ -161,6 +170,7 @@ void MainDialog::onStartRec()
     ui.stopButton->setEnabled(true);
     ui.startButton->setEnabled(false);
     ui.exitButton->setEnabled(false);
+    ui.markersWidget->setEnabled(true);
 
     for (unsigned int i=0; i<numCameras; i++)
     {
@@ -187,6 +197,7 @@ void MainDialog::onStopRec()
     ui.stopButton->setEnabled(false);
     ui.startButton->setEnabled(true);
     ui.exitButton->setEnabled(true);
+    ui.markersWidget->setEnabled(false);
 
     for (unsigned int i=0; i<numCameras; i++)
     {
@@ -204,38 +215,16 @@ void MainDialog::onStopRec()
 }
 
 
-void MainDialog::setupVideoDialog(unsigned int idx)
-{
-    videoDialogs[idx] = new VideoDialog(cameras[idx], idx);
-    if(settings.videoRects[idx].isValid())
-        videoDialogs[idx]->setGeometry(settings.videoRects[idx]);
-    videoDialogs[idx]->findChild<QSlider*>("shutterSlider")->setValue(settings.videoShutters[idx]);
-    videoDialogs[idx]->findChild<QSlider*>("gainSlider")->setValue(settings.videoGains[idx]);
-    videoDialogs[idx]->findChild<QSlider*>("uvSlider")->setValue(settings.videoUVs[idx]);
-    videoDialogs[idx]->findChild<QSlider*>("vrSlider")->setValue(settings.videoVRs[idx]);
-    videoDialogs[idx]->findChild<QCheckBox*>("ldsBox")->setChecked(settings.videoLimits[idx]);
-    videoDialogs[idx]->show();
-}
-
-
-void MainDialog::cleanVideoDialog(unsigned int idx)
-{
-    videoDialogs[idx]->stopThreads();
-    settings.videoRects[idx] = videoDialogs[idx]->geometry();
-    settings.videoShutters[idx] = videoDialogs[idx]->findChild<QSlider*>("shutterSlider")->value();
-    settings.videoGains[idx] = videoDialogs[idx]->findChild<QSlider*>("gainSlider")->value();
-    settings.videoUVs[idx] = videoDialogs[idx]->findChild<QSlider*>("uvSlider")->value();
-    settings.videoVRs[idx] = videoDialogs[idx]->findChild<QSlider*>("vrSlider")->value();
-    settings.videoLimits[idx] = videoDialogs[idx]->findChild<QCheckBox*>("ldsBox")->isChecked();
-    delete videoDialogs[idx];
-}
-
-
 void MainDialog::onExit()
 {
     for (unsigned int i=0; i<numCameras; i++)
+    {
         if(camCheckBoxes[i]->isChecked())
-            this->cleanVideoDialog(i);
+        {
+            videoDialogs[i]->stopThreads();
+            delete videoDialogs[i];
+        }
+    }
     settings.controllerRect = this->geometry();
     close();
 }
@@ -381,10 +370,13 @@ void MainDialog::onCamToggled(bool _state)
 
     if(_state)
     {
-        this->setupVideoDialog(idx);
+        videoDialogs[idx] = new VideoDialog(cameras[idx], idx);
+        videoDialogs[idx]->show();
     }
     else
     {
-        this->cleanVideoDialog(idx);
+        videoDialogs[idx]->stopThreads();
+        delete videoDialogs[idx];
     }
 }
+

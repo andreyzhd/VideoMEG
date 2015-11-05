@@ -42,7 +42,7 @@ private:
     snd_pcm_t*          pcmHandle;
     snd_pcm_uframes_t   framesPerPeriod;
     unsigned char*      periodBuffer;
-    Settings            settings;
+    Settings&           settings = Settings::getSettings();
 };
 
 #endif /* MICROPHONETHREAD_H_ */

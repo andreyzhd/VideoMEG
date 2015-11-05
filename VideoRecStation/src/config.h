@@ -23,6 +23,7 @@
 // Camera configuration
 #define VIDEO_DEV_PATH      "/dev/video0"
 #define N_CAMERA_BUFFERS    1
+#define MAX_CAMERAS         6
 
 #define SHUTTER_ADDR        0xf0081c
 #define SHUTTER_MIN_VAL     1
@@ -70,8 +71,13 @@
 #define SPK_THREAD_PRIORITY 5
 
 // Used for storing application settings
-#define ORG_NAME "Elekta"
+#define ORG_NAME "HelsinkiVideoMEG"
 #define APP_NAME "VideoRecStation"
+
+// Markers configuration
+#define MAX_MARKER_TYPES    4
+#define MAX_MARKERS         10000
+#define KEY_REP_SUPPRES     1000        // milliseconds
 
 #define CONFIG_H_
 

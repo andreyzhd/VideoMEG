@@ -27,6 +27,7 @@
 #include "cycdatabuffer.h"
 #include "videofilewriter.h"
 #include "videocompressorthread.h"
+#include "settings.h"
 
 
 class VideoDialog : public QDialog
@@ -64,6 +65,7 @@ private:
     CycDataBuffer*          cycVideoBufJpeg;
     VideoFileWriter*        videoFileWriter;
     VideoCompressorThread*  videoCompressorThread;
+    Settings&               settings = Settings::getSettings();
 
     // These variables are used for showing the FPS
     u_int64_t               prevFrameTstamp;

@@ -41,7 +41,7 @@ protected:
 private:
     snd_pcm_t*          sndHandle;
     NonBlockingBuffer*  buffer;
-    Settings            settings;
+    Settings&           settings = Settings::getSettings();
 };
 
 #endif /* SPEAKERTHREAD_H_ */

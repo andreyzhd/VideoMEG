@@ -20,7 +20,6 @@
 #ifndef CYCDATABUFFER_H_
 #define CYCDATABUFFER_H_
 
-#include <stdint.h>
 #include <QObject>
 #include <QSemaphore>
 
@@ -28,7 +27,7 @@
 typedef struct
 {
     int         chunkSize;
-    uint64_t    timestamp;
+    quint64    timestamp;
     bool        isRec;
 } ChunkAttrib;
 

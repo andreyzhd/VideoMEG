@@ -33,7 +33,11 @@ HEADERS += settings.h \
     config.h \
     camerathread.h \
     videowidget.h \
-    maindialog.h
+    maindialog.h \
+    keymonitor.h \
+    fixx11h.h \
+    markerswidget.h \
+    markerfilewriter.h
 SOURCES += settings.cpp \
     videodialog.cpp \
     filewriter.cpp \
@@ -48,9 +52,13 @@ SOURCES += settings.cpp \
     camerathread.cpp \
     videowidget.cpp \
     main.cpp \
-    maindialog.cpp
+    maindialog.cpp \
+    keymonitor.cpp \
+    markerswidget.cpp \
+    markerfilewriter.cpp
 FORMS += videodialog.ui \
-    maindialog.ui
+    maindialog.ui \
+    markerswidget.ui
 INCLUDEPATH += /usr/include/c++/4.4 \
     /usr/include \
     /usr/local/include
@@ -58,6 +66,8 @@ LIBS += -L/usr/local/lib \
     -L/usr/lib \
     -lasound \
     -ldc1394 \
-    -ljpeg
+    -ljpeg \
+    -lX11
 RESOURCES += 
 DEFINES += __STDC_LIMIT_MACROS
+CONFIG += c++11

@@ -22,7 +22,6 @@
 #include <time.h>
 #include <QCoreApplication>
 #include <stdlib.h>
-#include <QTime>
 
 #include "camerathread.h"
 #include "config.h"
@@ -114,7 +113,6 @@ void CameraThread::stoppableRun()
     ChunkAttrib             chunkAttrib;
     unsigned int            chunkSize;
     unsigned char*          fakeImage;
-    QTime                   time;
 
     chunkSize = VIDEO_HEIGHT * VIDEO_WIDTH * (color ? 3 : 1);
     chunkAttrib.chunkSize = chunkSize;
@@ -132,7 +130,6 @@ void CameraThread::stoppableRun()
     if (!camera)
     {
         fakeImage = new unsigned char[chunkSize];
-        time = QTime::currentTime();
         while (!shouldStop)
         {
             msleep(33);

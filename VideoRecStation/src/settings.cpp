@@ -20,14 +20,23 @@
 #include <stdio.h>
 #include <QSettings>
 #include <QRect>
+#include <QException>
+#include <QDebug>
 
 #include "settings.h"
 #include "config.h"
 
+volatile bool Settings::existsInstance = false;
+
 Settings::Settings()
 {
+    // Don't allow to create more than one instance. Because on the atomicity
+    // of test-and-set is not guaranteed, it might fail in (hopefully) very rare
+    // cases of race condition.
+	Q_ASSERT(!existsInstance);
+    existsInstance = true;
+	
     QSettings settings(ORG_NAME, APP_NAME);
-
 
     //---------------------------------------------------------------------
     // Video settings
@@ -89,6 +98,15 @@ Settings::Settings()
 
     // Camera dummy mode
     dummyMode = settings.value("misc/dummy_mode", false).toBool();
+
+    // Markers
+    for (unsigned int i=0; i<MAX_MARKER_TYPES; i++)
+    {
+        markerKeySym[i] = settings.value(QString("markers/KeySym_%1").arg(i+1), 0xffc6+i).toUInt(); // 0xffc6 corresponds to XK_F9
+        markerType[i] = settings.value(QString("markers/type_%1").arg(i+1), QString("marker %1").arg(i+1)).toString();
+    }
+
+    markersStoragePath = settings.value("markers/storage_path", "/videodat/markers").toString();
 }
 
 Settings::~Settings()
@@ -124,5 +142,21 @@ Settings::~Settings()
     settings.setValue("misc/data_storage_path", storagePath);
     settings.setValue("misc/dummy_mode", dummyMode);
 
+    // Markers
+    for (unsigned int i=0; i<MAX_MARKER_TYPES; i++)
+    {
+        settings.setValue(QString("markers/KeySym_%1").arg(i+1), markerKeySym[i]);
+        settings.setValue(QString("markers/type_%1").arg(i+1), markerType[i]);
+    }
+
+    settings.setValue("markers/storage_path", markersStoragePath);
+
     settings.sync();
+    existsInstance = false;
+}
+
+Settings& Settings::getSettings()
+{
+    static Settings globalInstance;
+    return(globalInstance);
 }

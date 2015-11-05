@@ -40,6 +40,8 @@
  */
 class StoppableThread : public QThread
 {
+    // TODO: Modify the class so that the destructor waits (e.g. on a
+    // semaphore)for the stoppableRun to exit.
 public:
     void stop();
 

@@ -57,3 +57,9 @@ void VideoWidget::onDrawFrame(unsigned char* _jpegBuf)
     // before displaying, scale the pixmap to preserve the aspect ratio
     this->setPixmap(pixMap.scaled(width, height, Qt::KeepAspectRatio).transformed(trans));
 }
+
+
+VideoWidget::~VideoWidget()
+{
+
+}

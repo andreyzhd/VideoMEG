@@ -23,7 +23,6 @@
 // Camera configuration
 #define VIDEO_HEIGHT        480
 #define VIDEO_WIDTH         640
-#define MAX_CAMERAS         6
 
 // Audio configuration
 #define AUDIO_FORMAT        SND_PCM_FORMAT_S16_LE   // from <alsa/asoundlib.h>
@@ -37,7 +36,6 @@
 #define MAGIC_AUDIO_STR     "ELEKTA_AUDIO_FILE"
 
 #define COMMON_H_
-
 
 #endif /* COMMON_H_ */
 

@@ -22,14 +22,12 @@
 
 #include "videodialog.h"
 #include "config.h"
-#include "settings.h"
 
 using namespace std;
 
 VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *parent)
     : QDialog(parent)
 {
-    Settings    settings;
     cameraIdx = _cameraIdx;
     prevFrameTstamp = 0;
     frameCnt = 0;
@@ -50,7 +48,7 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *paren
     QObject::connect(cycVideoBufJpeg, SIGNAL(chunkReady(unsigned char*)), ui.videoWidget, SLOT(onDrawFrame(unsigned char*)));
     QObject::connect(cycVideoBufJpeg, SIGNAL(chunkReady(unsigned char*)), this, SLOT(onNewFrame(unsigned char*)));
 
-    // Setup gain/shutter sliders
+    // Setup sliders' limits
     ui.shutterSlider->setMinimum(SHUTTER_MIN_VAL);
     ui.shutterSlider->setMaximum(SHUTTER_MAX_VAL);
 
@@ -69,6 +67,25 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *paren
     ui.vrLabel->setEnabled(settings.color);
     ui.wbLabel->setEnabled(settings.color);
 
+    if(settings.videoRects[_cameraIdx].isValid())
+    {
+        this->setGeometry(settings.videoRects[_cameraIdx]);
+    }
+
+    // Setup sliders' positions
+    ui.shutterSlider->setValue(settings.videoShutters[_cameraIdx]);
+    ui.gainSlider->setValue(settings.videoGains[_cameraIdx]);
+    ui.uvSlider->setValue(settings.videoUVs[_cameraIdx]);
+    ui.vrSlider->setValue(settings.videoVRs[_cameraIdx]);
+
+    // Write the sliders' values to the camera
+    onShutterChanged(settings.videoShutters[_cameraIdx]);
+    onGainChanged(settings.videoGains[_cameraIdx]);
+    onUVChanged(settings.videoUVs[_cameraIdx]);
+    onVRChanged(settings.videoVRs[_cameraIdx]);
+
+    ui.ldsBox->setChecked(settings.videoLimits[_cameraIdx]);
+
     // Start video running
     videoFileWriter->start();
     videoCompressorThread->start();
@@ -78,6 +95,13 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *paren
 
 VideoDialog::~VideoDialog()
 {
+    settings.videoRects[cameraIdx] = this->geometry();
+    settings.videoShutters[cameraIdx] = ui.shutterSlider->value();
+    settings.videoGains[cameraIdx] = ui.gainSlider->value();
+    settings.videoUVs[cameraIdx] = ui.uvSlider->value();
+    settings.videoVRs[cameraIdx] = ui.vrSlider->value();
+    settings.videoLimits[cameraIdx] = ui.ldsBox->isChecked();
+
     delete cycVideoBufRaw;
     delete cycVideoBufJpeg;
     delete cameraThread;

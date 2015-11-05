@@ -18,12 +18,11 @@
  */
 
 
-#include "maindialog.h"
-
 #include <iostream>
 #include <QtGui>
 #include <QApplication>
 
+#include "maindialog.h"
 
 using namespace std;
 
