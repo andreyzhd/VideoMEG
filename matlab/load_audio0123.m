@@ -17,6 +17,10 @@ function [ts, ids, offset, data, srate, site_id, is_sender] = load_audio0123(fil
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %--------------------------------------------------------------------------
 
+    if nargin<2
+      fix_tstamps = false;
+    end
+
     MAGIC_STR = 'ELEKTA_AUDIO_FILE';
 
     h = fopen(filename, 'rb');
@@ -50,11 +54,11 @@ function [ts, ids, offset, data, srate, site_id, is_sender] = load_audio0123(fil
     [t, id, buflen] = read_attrib(h, ver);
     frames_per_buf = buflen/(2*nchans);
     
-    if(ver==0 | ver==1)
+    if(ver==0 || ver==1)
         attrib_sz = 8 + 4;
     end
     
-    if(ver==2 | ver==3)
+    if(ver==2 || ver==3)
         attrib_sz = 8 + 8 + 4;
     end
     
