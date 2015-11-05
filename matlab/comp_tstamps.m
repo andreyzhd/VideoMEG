@@ -34,15 +34,10 @@ BASELINE = 5;   % seconds
 TRAIN_STEP = 0.015; % seconds
 NBITS = 43;          % including the parity bit
 
-% find all triggers (threshold crossings)
-trigs = [];
+% find the upgoing flank of all triggers (threshold crossings)
+trig1 = find([0 diff(inp>THRESH)>0]);
 
-for i = 1 : length(inp)-1
-    if (inp(i) < THRESH) & (inp(i+1) > THRESH)
-        trigs(end+1) = i+1;
-    end
-end
-
+% determine the duration of each trigger
 d = trigs(2:end) - trigs(1:end-1);
 
 samps = [];
