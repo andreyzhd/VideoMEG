@@ -33,7 +33,7 @@ function [ts, ids, site_id, is_sender, frame_sizes, frame_ptrs] = load_video123(
     assert(strcmp(char(header_str'), MAGIC_STR));
     
     ver = fread(inpf, 1, 'uint32');
-    assert(ver==1 | ver==2 | ver==3);
+    assert(ver==1 || ver==2 || ver==3);
     
     if ver==3
         site_id = fread(inpf, 1, 'uint8');

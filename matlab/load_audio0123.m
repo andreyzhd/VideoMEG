@@ -26,7 +26,7 @@ function [ts, ids, offset, data, srate, site_id, is_sender] = load_audio0123(fil
     assert(strcmp(char(header_str'), MAGIC_STR));
     
     ver = fread(h, 1, 'uint32');
-    assert(ver==0 | ver==1 | ver==2 | ver==3);
+    assert(ver==0 || ver==1 || ver==2 || ver==3);
     
     if ver==3
         site_id = fread(h, 1, 'uint8');
@@ -50,11 +50,11 @@ function [ts, ids, offset, data, srate, site_id, is_sender] = load_audio0123(fil
     [t, id, buflen] = read_attrib(h, ver);
     frames_per_buf = buflen/(2*nchans);
     
-    if(ver==0 | ver==1)
+    if(ver==0 || ver==1)
         attrib_sz = 8 + 4;
     end
     
-    if(ver==2 | ver==3)
+    if(ver==2 || ver==3)
         attrib_sz = 8 + 8 + 4;
     end
     
@@ -90,10 +90,10 @@ end
 
 
 function [t, id, blen] = read_attrib(h, ver)
-    assert(ver==0 | ver==1 | ver==2 | ver==3);
+    assert(ver==0 || ver==1 || ver==2 || ver==3);
     t = fread(h, 1, 'uint64=>uint64');
         
-    if(ver==2 | ver==3)
+    if(ver==2 || ver==3)
         id = fread(h, 1, 'uint64=>uint64');
     else
         id = -1;
