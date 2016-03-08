@@ -94,7 +94,7 @@ Settings::Settings()
     //
 
     // Data storage folder
-    storagePath = settings.value("misc/data_storage_path", "/videodat").toString();
+    storagePath = settings.value("misc/data_storage_path", "/tmp").toString();
 
     // Camera dummy mode
     dummyMode = settings.value("misc/dummy_mode", false).toBool();
