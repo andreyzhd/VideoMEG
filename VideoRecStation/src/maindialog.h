@@ -53,9 +53,7 @@ public slots:
     void onExit();
     void onAudioUpdate(unsigned char* _data);
     void onCamToggled(bool _state);
-    void updateDiskSpace();
-    void updateRunningStatus();
-    double freeSpaceGB();
+    void onStatusBarUpdate();
 
 private:
     void initVideo();
@@ -72,8 +70,8 @@ private:
     CycDataBuffer*      cycAudioBuf;
     AudioFileWriter*    audioFileWriter;
 
-    QLabel *statusLeft;
-    QLabel *statusRight;
+    QLabel statusLeft;
+    QLabel statusRight;
     QTimer *updateTimer;
     QTime *updateElapsed;
 

@@ -46,15 +46,12 @@ MainDialog::MainDialog(QWidget *parent)
 
     // Set up status bar
     ui.statusBar->setSizeGripEnabled(false);
-    statusLeft = new QLabel("", this);
-    statusRight = new QLabel("", this);
-    ui.statusBar->addPermanentWidget(statusLeft, 1);
-    ui.statusBar->addPermanentWidget(statusRight, 0);
-    updateDiskSpace();
+    ui.statusBar->addPermanentWidget(&statusLeft, 1);
+    ui.statusBar->addPermanentWidget(&statusRight, 0);
     updateTimer = new QTimer(this);
     updateElapsed = new QTime();
     updateTimer->setInterval(500);  // every half second
-    connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateRunningStatus()));
+    connect(updateTimer, SIGNAL(timeout()), this, SLOT(onStatusBarUpdate()));
     ui.clipLabel->setStyleSheet("QLabel { background-color : red; color : black; }");
     ui.clipLabel->setVisible(false);
 
@@ -110,29 +107,21 @@ MainDialog::MainDialog(QWidget *parent)
 }
 
 
-double MainDialog::freeSpaceGB()
+void MainDialog::onStatusBarUpdate()
 {
     QStorageInfo storageInfo(settings.storagePath);
-    return double(storageInfo.bytesAvailable()) / 1073741824.0;
-}
 
-
-void MainDialog::updateRunningStatus()
-{
     int secs = updateElapsed->elapsed() / 1000;
     int mins = (secs / 60) % 60;
     int hours = secs / 3600;
     secs %= 60;
-    if (hours > 0)
-        statusLeft->setText(QString("Recording (%1:%2:%3)").arg(hours, 2, 10, QLatin1Char('0')).arg(mins, 2, 10, QLatin1Char('0')).arg(secs, 2, 10, QLatin1Char('0')));
-    else
-        statusLeft->setText(QString("Recording (%1:%2)").arg(mins, 2, 10, QLatin1Char('0')).arg(secs, 2, 10, QLatin1Char('0')));
-    updateDiskSpace();
-}
 
-void MainDialog::updateDiskSpace()
-{
-    statusRight->setText(QString("%1 GB free").arg(freeSpaceGB(), 0, 'f', 1));
+    if (hours > 0)
+        statusLeft.setText(QString("Recording (%1:%2:%3)").arg(hours, 2, 10, QLatin1Char('0')).arg(mins, 2, 10, QLatin1Char('0')).arg(secs, 2, 10, QLatin1Char('0')));
+    else
+        statusLeft.setText(QString("Recording (%1:%2)").arg(mins, 2, 10, QLatin1Char('0')).arg(secs, 2, 10, QLatin1Char('0')));
+
+    statusRight.setText(QString("%1 GB free").arg(double(storageInfo.bytesAvailable()) / 1073741824.0, 0, 'f', 1));
 }
 
 
@@ -147,8 +136,6 @@ MainDialog::~MainDialog()
     microphoneThread->stop();
     audioFileWriter->stop();
 
-    delete statusLeft;
-    delete statusRight;
     delete updateTimer;
     delete updateElapsed;
 }
@@ -156,7 +143,9 @@ MainDialog::~MainDialog()
 
 void MainDialog::onStartRec()
 {
-    double freeSpace = freeSpaceGB();
+    QStorageInfo storageInfo(settings.storagePath);
+    double freeSpace = double(storageInfo.bytesAvailable()) / 1073741824.0;
+
     if (freeSpace < settings.lowDiskSpaceWarning)
     {
         if (QMessageBox::warning(this, "Low disk space",
@@ -180,6 +169,7 @@ void MainDialog::onStartRec()
             videoDialogs[i]->setIsRec(true);
         }
     }
+
     cycAudioBuf->setIsRec(true);
     updateElapsed->start();
     updateTimer->start();
@@ -211,7 +201,7 @@ void MainDialog::onStopRec()
     cycAudioBuf->setIsRec(false);
     QString fileName = QString(audioFileWriter->readableFileName);
     fileName.chop(13);
-    statusLeft->setText(QString("Saved %1...").arg(fileName));
+    statusLeft.setText(QString("Saved %1...").arg(fileName));
 }
 
 
@@ -345,7 +335,7 @@ void MainDialog::initVideo()
         camCheckBoxes[i]->setEnabled(true);
         connect(camCheckBoxes[i], SIGNAL(toggled(bool)), this, SLOT(onCamToggled(bool)));
     }
-    statusLeft->setText(QString("Found %1 camera%2").arg(numCameras).arg(numCameras != 1 ? "s" : ""));
+    statusLeft.setText(QString("Found %1 camera%2").arg(numCameras).arg(numCameras != 1 ? "s" : ""));
     vertSpacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
     ui.videoVerticalLayout->addItem(vertSpacer);
 }
