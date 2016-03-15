@@ -60,20 +60,24 @@ private:
 
     Ui::MainDialogClass ui;
 
+    // Data structures for cameras
+    dc1394_t*           dc1394Context;
     dc1394camera_t*     cameras[MAX_CAMERAS];
+    unsigned int        numCameras;
+
     VideoDialog*        videoDialogs[MAX_CAMERAS];
     QCheckBox*          camCheckBoxes[MAX_CAMERAS];
-    unsigned int        numCameras;
     QSpacerItem*        vertSpacer;
 
     MicrophoneThread*   microphoneThread;
     CycDataBuffer*      cycAudioBuf;
     AudioFileWriter*    audioFileWriter;
 
+    // Data structures for the status bar
     QLabel statusLeft;
     QLabel statusRight;
-    QTimer *updateTimer;
-    QTime *updateElapsed;
+    QTimer updateTimer;
+    QTime  updateElapsed;
 
     // Data structures for volume indicator. volMaxvals is a cyclic buffer
     // that stores maximal values for the last N_BUF_4_VOL_IND periods for

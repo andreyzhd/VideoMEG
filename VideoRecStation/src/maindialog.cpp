@@ -48,12 +48,8 @@ MainDialog::MainDialog(QWidget *parent)
     ui.statusBar->setSizeGripEnabled(false);
     ui.statusBar->addPermanentWidget(&statusLeft, 1);
     ui.statusBar->addPermanentWidget(&statusRight, 0);
-    updateTimer = new QTimer(this);
-    updateElapsed = new QTime();
-    updateTimer->setInterval(500);  // every half second
-    connect(updateTimer, SIGNAL(timeout()), this, SLOT(onStatusBarUpdate()));
-    ui.clipLabel->setStyleSheet("QLabel { background-color : red; color : black; }");
-    ui.clipLabel->setVisible(false);
+    updateTimer.setInterval(500);  // every half second
+    connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onStatusBarUpdate()));
 
     // Set up video recording
     initVideo();
@@ -79,6 +75,10 @@ MainDialog::MainDialog(QWidget *parent)
         speakerBuffer = NULL;
         speakerThread = NULL;
     }
+
+    // Set up volume indicator appearence
+    ui.clipLabel->setStyleSheet("QLabel { background-color : red; color : black; }");
+    ui.clipLabel->setVisible(false);
 
     if (settings.metersUseDB)
     {
@@ -111,7 +111,7 @@ void MainDialog::onStatusBarUpdate()
 {
     QStorageInfo storageInfo(settings.storagePath);
 
-    int secs = updateElapsed->elapsed() / 1000;
+    int secs = updateElapsed.elapsed() / 1000;
     int mins = (secs / 60) % 60;
     int hours = secs / 3600;
     secs %= 60;
@@ -135,9 +135,6 @@ MainDialog::~MainDialog()
     }
     microphoneThread->stop();
     audioFileWriter->stop();
-
-    delete updateTimer;
-    delete updateElapsed;
 }
 
 
@@ -171,8 +168,8 @@ void MainDialog::onStartRec()
     }
 
     cycAudioBuf->setIsRec(true);
-    updateElapsed->start();
-    updateTimer->start();
+    updateElapsed.start();
+    updateTimer.start();
 }
 
 
@@ -183,7 +180,7 @@ void MainDialog::onStopRec()
                              "Are you sure you want to stop recording?",
                              QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Ok)
         return;
-    updateTimer->stop();
+    updateTimer.stop();
     ui.stopButton->setEnabled(false);
     ui.startButton->setEnabled(true);
     ui.exitButton->setEnabled(true);
@@ -278,7 +275,6 @@ void MainDialog::onAudioUpdate(unsigned char* _data)
 
 void MainDialog::initVideo()
 {
-    dc1394_t*               dc1394Context;
     dc1394camera_list_t*    camList;
     dc1394error_t           err;
 
@@ -304,10 +300,10 @@ void MainDialog::initVideo()
             cerr << "Failed to enumerate cameras" << endl;
             abort();
         }
-        cerr << camList->num << " camera(s) found" << endl;
+        cout << camList->num << " camera(s) found" << endl;
         numCameras = MAX_CAMERAS < camList->num ? MAX_CAMERAS : camList->num;
 
-        // use the first camera in the list
+        // Initialize the cameras
         for (unsigned int i=0; i < numCameras; i++)
         {
             cameras[i] = dc1394_camera_new(dc1394Context, camList->ids[i].guid);
@@ -316,7 +312,7 @@ void MainDialog::initVideo()
                 cerr << "Failed to initialize camera with guid " << camList->ids[0].guid << endl;
                 abort();
             }
-            cout << "Using camera with GUID " << cameras[0]->guid << endl;
+            cout << "Using camera with GUID " << cameras[i]->guid << endl;
         }
         dc1394_camera_free_list(camList);
     }
