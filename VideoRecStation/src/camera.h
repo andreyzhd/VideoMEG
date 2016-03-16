@@ -1,8 +1,8 @@
 /*
- * camerathread.h
+ * camera.h
  *
  * Author: Andrey Zhdanov
- * Copyright (C) 2014 BioMag Laboratory, Helsinki University Central Hospital
+ * Copyright (C) 2016 BioMag Laboratory, Helsinki University Central Hospital
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CAMERATHREAD_H_
-#define CAMERATHREAD_H_
+#ifndef CAMERA_H_
+#define CAMERA_H_
 
-#include <dc1394/dc1394.h>
-
-#include "stoppablethread.h"
-#include "cycdatabuffer.h"
-
-//! This thread acquires and timestamps frames for a single libdc1394 video camera.
-class CameraThread : public StoppableThread
+//! This is an interface abstracting a single camera.
+/*!
+ * Only call start() and stop() once, in that particular order.
+ */
+class Camera
 {
 public:
-    CameraThread(dc1394camera_t* _camera, CycDataBuffer* _cycBuf, bool _color);
-    virtual ~CameraThread();
-
-protected:
-    virtual void stoppableRun();
-
-private:
-    dc1394camera_t* camera;
-    CycDataBuffer*  cycBuf;
-    bool            color;
+    virtual void start() = 0;
+    virtual void stop() = 0;
 };
 
-#endif /* CAMERATHREAD_H_ */
+#endif /* CAMERA_H_ */

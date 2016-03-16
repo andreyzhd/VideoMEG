@@ -31,13 +31,16 @@ HEADERS += settings.h \
     microphonethread.h \
     videofilewriter.h \
     config.h \
-    camerathread.h \
     videowidget.h \
     maindialog.h \
     keymonitor.h \
     fixx11h.h \
     markerswidget.h \
-    markerfilewriter.h
+    markerfilewriter.h \
+    cameracollection.h \
+    dc1394camera.h \
+    camera.h \
+    dc1394cameracollection.h
 SOURCES += settings.cpp \
     videodialog.cpp \
     filewriter.cpp \
@@ -49,13 +52,14 @@ SOURCES += settings.cpp \
     cycdatabuffer.cpp \
     microphonethread.cpp \
     videofilewriter.cpp \
-    camerathread.cpp \
     videowidget.cpp \
     main.cpp \
     maindialog.cpp \
     keymonitor.cpp \
     markerswidget.cpp \
-    markerfilewriter.cpp
+    markerfilewriter.cpp \
+    dc1394camera.cpp \
+    dc1394cameracollection.cpp
 FORMS += videodialog.ui \
     maindialog.ui \
     markerswidget.ui

@@ -1,8 +1,8 @@
 /*
- * camerathread.cpp
+ * dc1394camera.cpp
  *
  * Author: Andrey Zhdanov
- * Copyright (C) 2014 BioMag Laboratory, Helsinki University Central Hospital
+ * Copyright (C) 2016 BioMag Laboratory, Helsinki University Central Hospital
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,27 +23,22 @@
 #include <QCoreApplication>
 #include <stdlib.h>
 
-#include "camerathread.h"
+#include "dc1394camera.h"
 #include "config.h"
+#include "settings.h"
 
 using namespace std;
 
 
-CameraThread::CameraThread(dc1394camera_t* _camera, CycDataBuffer* _cycBuf, bool _color)
+dc1394Camera::dc1394Camera(dc1394camera_t* _camera, CycDataBuffer* _cycBuf)
 {
     dc1394error_t err;
+    Settings settings = Settings::getSettings();
 
     cycBuf = _cycBuf;
-    color = _color;
     shouldStop = false;
 
     camera = _camera;
-
-    // Dummy mode
-    if (camera == NULL)
-    {
-        return;
-    }
 
     /*-----------------------------------------------------------------------
      *  setup capture
@@ -62,7 +57,7 @@ CameraThread::CameraThread(dc1394camera_t* _camera, CycDataBuffer* _cycBuf, bool
         abort();
     }
 
-    err = dc1394_video_set_mode(camera, (color ? DC1394_VIDEO_MODE_640x480_RGB8 : DC1394_VIDEO_MODE_640x480_MONO8));
+    err = dc1394_video_set_mode(camera, (settings.color ? DC1394_VIDEO_MODE_640x480_RGB8 : DC1394_VIDEO_MODE_640x480_MONO8));
     if (err != DC1394_SUCCESS)
     {
         cerr << "Could not set video mode" << endl;
@@ -87,7 +82,7 @@ CameraThread::CameraThread(dc1394camera_t* _camera, CycDataBuffer* _cycBuf, bool
 }
 
 
-CameraThread::~CameraThread()
+dc1394Camera::~dc1394Camera()
 {
     dc1394error_t err;
     if (!camera)
@@ -104,7 +99,7 @@ CameraThread::~CameraThread()
 }
 
 
-void CameraThread::stoppableRun()
+void dc1394Camera::stoppableRun()
 {
     dc1394error_t           err;
     dc1394video_frame_t*    frame;
@@ -127,6 +122,7 @@ void CameraThread::stoppableRun()
     /*-----------------------------------------------------------------------
      *  dummy mode
      *-----------------------------------------------------------------------*/
+    /*
     if (!camera)
     {
         fakeImage = new unsigned char[chunkSize];
@@ -142,6 +138,7 @@ void CameraThread::stoppableRun()
         delete fakeImage;
         return;
     }
+    */
 
     /*-----------------------------------------------------------------------
      *  have the camera start sending us data
@@ -187,3 +184,14 @@ void CameraThread::stoppableRun()
     }
 }
 
+
+void dc1394Camera::Camera::start()
+{
+    StoppableThread::start();
+}
+
+
+void dc1394Camera::Camera::stop()
+{
+    StoppableThread::stop();
+}

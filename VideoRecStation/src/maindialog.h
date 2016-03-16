@@ -28,7 +28,7 @@
 
 #include "config.h"
 #include "ui_maindialog.h"
-#include "camerathread.h"
+#include "camera.h"
 #include "microphonethread.h"
 #include "cycdatabuffer.h"
 #include "videofilewriter.h"
@@ -59,11 +59,6 @@ private:
     void initVideo();
 
     Ui::MainDialogClass ui;
-
-    // Data structures for cameras
-    dc1394_t*           dc1394Context;
-    dc1394camera_t*     cameras[MAX_CAMERAS];
-    unsigned int        numCameras;
 
     VideoDialog*        videoDialogs[MAX_CAMERAS];
     QCheckBox*          camCheckBoxes[MAX_CAMERAS];
