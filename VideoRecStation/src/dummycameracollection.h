@@ -1,5 +1,5 @@
 /*
- * dc1394cameracollection.h
+ * dummycameracollection.h
  *
  * Author: Andrey Zhdanov
  * Copyright (C) 2016 BioMag Laboratory, Helsinki University Central Hospital
@@ -18,31 +18,20 @@
  */
 
 
-#ifndef DC1394CAMERACOLLECTION_H
-#define DC1394CAMERACOLLECTION_H
+#ifndef DUMMYCAMERACOLLECTION_H
+#define DUMMYCAMERACOLLECTION_H
 
-#include <dc1394/dc1394.h>
-#include "config.h"
-#include "cameracollection.h"
+#include"cameracollection.h"
 
-//! dc1394-based implementation of CameraCollection
-/*!
- * Never create more than one instance of this class. Destroy all the camera
- * objects obtained with getCamera() before calling the destructor.
- */
-class dc1394CameraCollection : public CameraCollection
+//! test implementation of CameraCollection
+class DummyCameraCollection : public CameraCollection
 {
 public:
-    dc1394CameraCollection();
-    virtual ~dc1394CameraCollection();
+    DummyCameraCollection();
+    virtual ~DummyCameraCollection();
     int camCount();
     Camera* getCamera(int _cameraId);
     QString getCameraModel(int _cameraId);
-
-private:
-    dc1394_t*           dc1394Context;
-    dc1394camera_t*     cameras[MAX_CAMERAS];
-    int                 numCameras;
 };
 
-#endif // DC1394CAMERACOLLECTION_H
+#endif // DUMMYCAMERACOLLECTION_H

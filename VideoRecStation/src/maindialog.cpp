@@ -28,6 +28,7 @@
 #include "config.h"
 #include "maindialog.h"
 #include "dc1394cameracollection.h"
+#include "dummycameracollection.h"
 
 using namespace std;
 
@@ -341,15 +342,14 @@ void MainDialog::createCameraCollection()
     }
 
     // trying dummy - to be implemented later !
-    //if (!settings.cameraFrontend.compare("dummy"))
-    //{
-    //    cameraCollection = new DummyCameraCollection();
-    //    success = true;
-    //}
+    if (!settings.cameraFrontend.compare("dummy"))
+    {
+        cameraCollection = new DummyCameraCollection();
+        success = true;
+    }
 
     if (!success)
     {
-        qFatal("Config file specifies unknown frontend type");
-        //qFatal("Config file specifies unknown frontend type: " + settings.cameraFrontend);
+        qFatal("Config file specifies unknown frontend type: %s", settings.cameraFrontend.toStdString().c_str());
     }
 }

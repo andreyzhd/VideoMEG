@@ -32,6 +32,8 @@ using namespace std;
 
 dc1394Camera::dc1394Camera(dc1394camera_t* _camera)
 {
+    qDebug() << "dc1394Camera constructor is called";
+
     dc1394error_t err;
     Settings settings = Settings::getSettings();
 
@@ -45,40 +47,34 @@ dc1394Camera::dc1394Camera(dc1394camera_t* _camera)
     err = dc1394_video_set_operation_mode(camera, DC1394_OPERATION_MODE_1394B);
     if (err != DC1394_SUCCESS)
     {
-        cerr << "Could not set operation mode" << endl;
-        abort();
+        qFatal("Could not set operation mode");
     }
 
     err = dc1394_video_set_iso_speed(camera, DC1394_ISO_SPEED_800);
     if (err != DC1394_SUCCESS)
     {
-        cerr << "Could not set iso speed" << endl;
-        abort();
+        qFatal("Could not set iso speed");
     }
 
     err = dc1394_video_set_mode(camera, (color ? DC1394_VIDEO_MODE_640x480_RGB8 : DC1394_VIDEO_MODE_640x480_MONO8));
     if (err != DC1394_SUCCESS)
     {
-        cerr << "Could not set video mode" << endl;
-        abort();
+        qFatal("Could not set video mode");
     }
 
     err = dc1394_video_set_framerate(camera, DC1394_FRAMERATE_30);
     if (err != DC1394_SUCCESS)
     {
-        cerr << "Could not set framerate" << endl;
-        abort();
+        qFatal("Could not set framerate");
     }
 
     err = dc1394_capture_setup(camera, N_CAMERA_BUFFERS, DC1394_CAPTURE_FLAGS_DEFAULT);
     if (err != DC1394_SUCCESS)
     {
-        cerr << "Could not setup camera-" << endl \
-             << "make sure that the video mode and framerate are" << endl \
-             << "supported by your camera" << endl;
-        abort();
+        qFatal("Could not setup camera. Make sure that the video mode and framerate are supported by your camera");
     }
 }
+
 
 void dc1394Camera::setBuffer(CycDataBuffer *_cycBuf)
 {
@@ -88,10 +84,15 @@ void dc1394Camera::setBuffer(CycDataBuffer *_cycBuf)
 
 dc1394Camera::~dc1394Camera()
 {
+    qDebug() << "dc1394Camera destructor is called";
+
     dc1394error_t err;
 
     err = dc1394_capture_stop(camera);
-    Q_ASSERT(err == DC1394_SUCCESS);
+    if(err != DC1394_SUCCESS)
+    {
+        qFatal("Error stopping the video capture");
+    }
 }
 
 
@@ -114,35 +115,17 @@ void dc1394Camera::stoppableRun()
     sch_param.sched_priority = CAM_THREAD_PRIORITY;
     if (sched_setscheduler(0, SCHED_FIFO, &sch_param))
     {
-        cerr << "Cannot set camera thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems." << endl;
+        qWarning() << "Cannot set camera thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems." << endl;
     }
-
-    /*-----------------------------------------------------------------------
-     *  dummy mode
-     *-----------------------------------------------------------------------*/
-    /*
-    if (!camera)
-    {
-        fakeImage = new unsigned char[chunkSize];
-        while (!shouldStop)
-        {
-            msleep(33);
-            clock_gettime(CLOCK_REALTIME, &timestamp);
-            chunkAttrib.timestamp = timestamp.tv_nsec / 1000000 + timestamp.tv_sec * 1000;
-            for(unsigned int i=0; i < chunkSize; i++)
-                fakeImage[i] = (unsigned char) qrand();
-            cycBuf->insertChunk(fakeImage, chunkAttrib);
-        }
-        delete fakeImage;
-        return;
-    }
-    */
 
     /*-----------------------------------------------------------------------
      *  have the camera start sending us data
      *-----------------------------------------------------------------------*/
     err = dc1394_video_set_transmission(camera, DC1394_ON);
-    Q_ASSERT(err == DC1394_SUCCESS);
+    if(err != DC1394_SUCCESS)
+    {
+        qFatal("Error starting up video transmission");
+    }
 
     // Start the acquisition loop
     while (!shouldStop)
@@ -152,8 +135,7 @@ void dc1394Camera::stoppableRun()
 
         if (err != DC1394_SUCCESS)
         {
-            cerr << "Error dequeuing a frame" << endl;
-            abort();
+            qFatal("Error dequeuing a frame");
         }
 
         chunkAttrib.timestamp = timestamp.tv_nsec / 1000000 + timestamp.tv_sec * 1000;
@@ -162,8 +144,7 @@ void dc1394Camera::stoppableRun()
         err = dc1394_capture_enqueue(camera, frame);
         if (err != DC1394_SUCCESS)
         {
-            cerr << "Error re-enqueuing a frame" << endl;
-            abort();
+            qFatal("Error re-enqueuing a frame");
         }
     }
 
@@ -173,8 +154,7 @@ void dc1394Camera::stoppableRun()
     err = dc1394_video_set_transmission(camera, DC1394_OFF);
     if (err != DC1394_SUCCESS)
     {
-        cerr << "Could not stop camera iso transmission" << endl;
-        abort();
+        qFatal("Error stopping video transmission");
     }
 }
 

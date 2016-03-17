@@ -40,7 +40,9 @@ HEADERS += settings.h \
     cameracollection.h \
     dc1394camera.h \
     camera.h \
-    dc1394cameracollection.h
+    dc1394cameracollection.h \
+    dummycamera.h \
+    dummycameracollection.h
 SOURCES += settings.cpp \
     videodialog.cpp \
     filewriter.cpp \
@@ -59,7 +61,9 @@ SOURCES += settings.cpp \
     markerswidget.cpp \
     markerfilewriter.cpp \
     dc1394camera.cpp \
-    dc1394cameracollection.cpp
+    dc1394cameracollection.cpp \
+    dummycamera.cpp \
+    dummycameracollection.cpp
 FORMS += videodialog.ui \
     maindialog.ui \
     markerswidget.ui

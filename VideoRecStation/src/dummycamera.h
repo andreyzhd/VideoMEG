@@ -1,5 +1,5 @@
 /*
- * dc1394camera.h
+ * dummycamera.h
  *
  * Author: Andrey Zhdanov
  * Copyright (C) 2016 BioMag Laboratory, Helsinki University Central Hospital
@@ -17,22 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DC1394CAMERA_H
-#define DC1394CAMERA_H
 
-#include <dc1394/dc1394.h>
+#ifndef DUMMYCAMERA_H
+#define DUMMYCAMERA_H
 
-#include "config.h"
 #include "camera.h"
 #include "stoppablethread.h"
 
-//! dc1394-based implementation of the camera interface
-class dc1394Camera : public Camera, StoppableThread
+//! test implementation of the camera interface-generates random images
+class DummyCamera : public Camera, StoppableThread
 {
 public:
-    dc1394Camera(dc1394camera_t* _camera);
+    DummyCamera();  
     void setBuffer(CycDataBuffer* _cycBuf);
-    virtual ~dc1394Camera();
+    virtual ~DummyCamera();
     void start();
     void stop();
 
@@ -45,16 +43,8 @@ protected:
     void stoppableRun() override;
 
 private:
-    //! Scale a variable from [camera::MIN_VAL, camera::MAX_VAL] to [_minVal, _maxVal]
-    uint32_t scale(int _inp, uint32_t _minVal, uint32_t _maxVal);
-    dc1394camera_t* camera;
     CycDataBuffer*  cycBuf = NULL;
     bool color;
-
-    // values of UV and VR color balance
-    uint32_t uv = UV_MIN_VAL;
-    uint32_t vr = VR_MIN_VAL;
 };
 
-#endif // DC1394CAMERA_H
-
+#endif // DUMMYCAMERA_H
