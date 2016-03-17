@@ -20,6 +20,8 @@
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
+#include "cycdatabuffer.h"
+
 //! This is an interface abstracting a single camera.
 /*!
  * Only call start() and stop() once, in that particular order.
@@ -29,6 +31,17 @@ class Camera
 public:
     virtual void start() = 0;
     virtual void stop() = 0;
+    virtual void setBuffer(CycDataBuffer* _cycBuf) = 0;
+    virtual ~Camera() {};
+
+    virtual void setShutter(int _newVal) = 0;
+    virtual void setGain(int _newVal) = 0;
+    virtual void setUV(int _newVal) = 0;
+    virtual void setVR(int _newVal) = 0;
+
+    // minimal and maximal values for setXXX methods' parameters
+    static const int MIN_VAL = 0;
+    static const int MAX_VAL = 99;
 };
 
 #endif /* CAMERA_H_ */

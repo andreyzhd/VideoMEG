@@ -48,7 +48,11 @@ Settings::Settings()
     // Use color mode
     color = settings.value("video/color", true).toBool();
 
+    cameraFrontend = settings.value("video/camera_frontend", "dc1394").toString();
+
+    //---------------------------------------------------------------------
     // Capture settings
+    //
     for (unsigned int i=0; i<MAX_CAMERAS; i++)
     {
         videoShutters[i] = settings.value(QString("video/camera_%1_shutter").arg(i+1), SHUTTER_MIN_VAL).toUInt();
@@ -96,9 +100,6 @@ Settings::Settings()
     // Data storage folder
     storagePath = settings.value("misc/data_storage_path", "/tmp").toString();
 
-    // Camera dummy mode
-    dummyMode = settings.value("misc/dummy_mode", false).toBool();
-
     // Markers
     for (unsigned int i=0; i<MAX_MARKER_TYPES; i++)
     {
@@ -115,6 +116,8 @@ Settings::~Settings()
 
     settings.setValue("video/jpeg_quality", jpgQuality);
     settings.setValue("video/color", color);
+    settings.setValue("video/camera_frontend", cameraFrontend);
+
     for (unsigned int i=0; i<MAX_CAMERAS; i++)
     {
         settings.setValue(QString("video/camera_%1_shutter").arg(i+1), videoShutters[i]);
@@ -140,7 +143,6 @@ Settings::~Settings()
     settings.setValue("audio/output_audio_device", outAudioDev);
 
     settings.setValue("misc/data_storage_path", storagePath);
-    settings.setValue("misc/dummy_mode", dummyMode);
 
     // Markers
     for (unsigned int i=0; i<MAX_MARKER_TYPES; i++)

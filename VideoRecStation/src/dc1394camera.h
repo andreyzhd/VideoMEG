@@ -22,6 +22,7 @@
 
 #include <dc1394/dc1394.h>
 
+#include "settings.h"
 #include "camera.h"
 #include "stoppablethread.h"
 
@@ -29,17 +30,30 @@
 class dc1394Camera : public Camera, StoppableThread
 {
 public:
-    dc1394Camera(dc1394camera_t* _camera, CycDataBuffer* _cycBuf);
-    virtual ~dc1394CameraThread();
-    void Camera::start();
-    void Camera::stop();
+    dc1394Camera(dc1394camera_t* _camera);
+    void setBuffer(CycDataBuffer* _cycBuf);
+    virtual ~dc1394Camera();
+    void start();
+    void stop();
+
+    void setShutter(int _newVal);
+    void setGain(int _newVal);
+    void setUV(int _newVal);
+    void setVR(int _newVal);
 
 protected:
     void stoppableRun() override;
 
 private:
+    //! Scale a variable from [camera::MIN_VAL, camera::MAX_VAL] to [_minVal, _maxVal]
+    uint32_t scale(int _inp, uint32_t _minVal, uint32_t _maxVal);
     dc1394camera_t* camera;
-    CycDataBuffer*  cycBuf;
+    CycDataBuffer*  cycBuf = NULL;
+    bool color;
+
+    // values of UV and VR color balance
+    uint32_t uv = UV_MIN_VAL;
+    uint32_t vr = VR_MIN_VAL;
 };
 
 #endif // DC1394CAMERA_H

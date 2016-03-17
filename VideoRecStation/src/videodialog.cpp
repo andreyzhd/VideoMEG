@@ -25,9 +25,10 @@
 
 using namespace std;
 
-VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *parent)
+VideoDialog::VideoDialog(Camera* _camera, int _cameraIdx, QWidget *parent)
     : QDialog(parent)
 {
+    camera = _camera;
     cameraIdx = _cameraIdx;
     prevFrameTstamp = 0;
     frameCnt = 0;
@@ -36,12 +37,11 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *paren
     ui.videoWidget->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint| Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint);
     setWindowTitle(QString("Camera %1").arg(cameraIdx + 1));
-    camera = _camera;
 
     // Set up video recording
     cycVideoBufRaw = new CycDataBuffer(CIRC_VIDEO_BUFF_SZ);
     cycVideoBufJpeg = new CycDataBuffer(CIRC_VIDEO_BUFF_SZ);
-    cameraThread = new CameraThread(camera, cycVideoBufRaw, settings.color);
+    camera->setBuffer(cycVideoBufRaw);
     videoFileWriter = new VideoFileWriter(cycVideoBufJpeg, settings.storagePath.toLocal8Bit().data(), cameraIdx + 1);
     videoCompressorThread = new VideoCompressorThread(cycVideoBufRaw, cycVideoBufJpeg, settings.color, settings.jpgQuality);
 
@@ -49,17 +49,17 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *paren
     QObject::connect(cycVideoBufJpeg, SIGNAL(chunkReady(unsigned char*)), this, SLOT(onNewFrame(unsigned char*)));
 
     // Setup sliders' limits
-    ui.shutterSlider->setMinimum(SHUTTER_MIN_VAL);
-    ui.shutterSlider->setMaximum(SHUTTER_MAX_VAL);
+    ui.shutterSlider->setMinimum(camera->MIN_VAL);
+    ui.shutterSlider->setMaximum(camera->MAX_VAL);
 
-    ui.gainSlider->setMinimum(GAIN_MIN_VAL);
-    ui.gainSlider->setMaximum(GAIN_MAX_VAL);
+    ui.gainSlider->setMinimum(camera->MIN_VAL);
+    ui.gainSlider->setMaximum(camera->MAX_VAL);
 
-    ui.uvSlider->setMinimum(UV_MIN_VAL);
-    ui.uvSlider->setMaximum(UV_MAX_VAL);
+    ui.uvSlider->setMinimum(camera->MIN_VAL);
+    ui.uvSlider->setMaximum(camera->MAX_VAL);
 
-    ui.vrSlider->setMinimum(VR_MIN_VAL);
-    ui.vrSlider->setMaximum(VR_MAX_VAL);
+    ui.vrSlider->setMinimum(camera->MIN_VAL);
+    ui.vrSlider->setMaximum(camera->MAX_VAL);
 
     ui.uvSlider->setEnabled(settings.color);
     ui.vrSlider->setEnabled(settings.color);
@@ -89,7 +89,7 @@ VideoDialog::VideoDialog(dc1394camera_t* _camera, int _cameraIdx, QWidget *paren
     // Start video running
     videoFileWriter->start();
     videoCompressorThread->start();
-    cameraThread->start();
+    camera->start();
 }
 
 
@@ -104,9 +104,9 @@ VideoDialog::~VideoDialog()
 
     delete cycVideoBufRaw;
     delete cycVideoBufJpeg;
-    delete cameraThread;
     delete videoFileWriter;
     delete videoCompressorThread;
+    delete camera;
 }
 
 
@@ -117,85 +117,31 @@ void VideoDialog::stopThreads()
     // order of stopping the threads is important.
     videoFileWriter->stop();
     videoCompressorThread->stop();
-    cameraThread->stop();
+    camera->stop();
 }
 
 
 void VideoDialog::onShutterChanged(int _newVal)
 {
-    dc1394error_t   err;
-
-    if (!cameraThread || !camera)
-    {
-        return;
-    }
-
-    err = dc1394_set_register(camera, SHUTTER_ADDR, _newVal + SHUTTER_OFFSET);
-
-    if (err != DC1394_SUCCESS)
-    {
-        cerr << "Could not set shutter register" << endl;
-        //abort();
-    }
+    camera->setShutter(_newVal);
 }
 
 
 void VideoDialog::onGainChanged(int _newVal)
 {
-    dc1394error_t   err;
-
-    if (!cameraThread || !camera)
-    {
-        return;
-    }
-
-    err = dc1394_set_register(camera, GAIN_ADDR, _newVal + GAIN_OFFSET);
-
-    if (err != DC1394_SUCCESS)
-    {
-        cerr << "Could not set gain register" << endl;
-        //abort();
-    }
+    camera->setGain(_newVal);
 }
 
 
 void VideoDialog::onUVChanged(int _newVal)
 {
-    dc1394error_t   err;
-
-    if (!cameraThread || !camera)
-    {
-        return;
-    }
-
-    // Since UV and VR live in the same register, we need to take care of both
-    err = dc1394_set_register(camera, WHITEBALANCE_ADDR, _newVal * UV_REG_SHIFT + ui.vrSlider->value() + WHITEBALANCE_OFFSET);
-
-    if (err != DC1394_SUCCESS)
-    {
-        cerr << "Could not set white balance register" << endl;
-        //abort();
-    }
+    camera->setUV(_newVal);
 }
 
 
 void VideoDialog::onVRChanged(int _newVal)
 {
-    dc1394error_t   err;
-
-    if (!cameraThread || !camera)
-    {
-        return;
-    }
-
-    // Since UV and VR live in the same register, we need to take care of both
-    err = dc1394_set_register(camera, WHITEBALANCE_ADDR, _newVal + UV_REG_SHIFT * ui.uvSlider->value() + WHITEBALANCE_OFFSET);
-
-    if (err != DC1394_SUCCESS)
-    {
-        cerr << "Could not set white balance register" << endl;
-        //abort();
-    }
+    camera->setVR(_newVal);
 }
 
 

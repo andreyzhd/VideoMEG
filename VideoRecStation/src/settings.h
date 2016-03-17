@@ -41,6 +41,7 @@ public:
     // video
     int             jpgQuality;
     bool            color;
+    QString         cameraFrontend;                 // Can be "dc1394" or "dummy"
 
     // audio
     unsigned int    sampRate;
@@ -60,7 +61,6 @@ public:
 
     // misc
     QString         storagePath;
-    bool            dummyMode;
     bool            controlOnTop;
     double          lowDiskSpaceWarning;
     bool            confirmStop;
@@ -72,10 +72,10 @@ public:
     QString         markersStoragePath;
 
     static Settings&    getSettings();
+    ~Settings();
 
 private:
     Settings();
-    ~Settings();
 
     // true if one instance of the class already exists---used to prevent multiple instances
     static volatile bool existsInstance;

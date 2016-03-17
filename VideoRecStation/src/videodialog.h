@@ -23,7 +23,7 @@
 
 #include <QDialog>
 #include "ui_videodialog.h"
-#include "camerathread.h"
+#include "camera.h"
 #include "cycdatabuffer.h"
 #include "videofilewriter.h"
 #include "videocompressorthread.h"
@@ -35,17 +35,9 @@ class VideoDialog : public QDialog
     Q_OBJECT
 
 public:
-    VideoDialog(dc1394camera_t* _camera, int _cameraId, QWidget *parent = 0);
+    VideoDialog(Camera* _camera, int _cameraId, QWidget *parent = 0);
     virtual ~VideoDialog();
     void setIsRec(bool _isRec);
-
-public slots:
-    void onShutterChanged(int _newVal);
-    void onGainChanged(int _newVal);
-    void onUVChanged(int _newVal);
-    void onVRChanged(int _newVal);
-    void onNewFrame(unsigned char* _jpegBuf);
-    void onLdsBoxToggled(bool _checked);
 
     //! Stop all the threads associated with the dialog.
     /*!
@@ -55,12 +47,19 @@ public slots:
      */
     void stopThreads();
 
+public slots:
+    void onShutterChanged(int _newVal);
+    void onGainChanged(int _newVal);
+    void onUVChanged(int _newVal);
+    void onVRChanged(int _newVal);
+    void onNewFrame(unsigned char* _jpegBuf);
+    void onLdsBoxToggled(bool _checked);
+
 private:
     Ui::VideoDialogClass ui;
 
     unsigned int            cameraIdx;
-    dc1394camera_t*         camera;
-    CameraThread*           cameraThread;
+    Camera*                 camera;
     CycDataBuffer*          cycVideoBufRaw;
     CycDataBuffer*          cycVideoBufJpeg;
     VideoFileWriter*        videoFileWriter;

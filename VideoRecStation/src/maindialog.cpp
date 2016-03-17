@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include "maindialog.h"
+#include "dc1394cameracollection.h"
 
 using namespace std;
 
@@ -51,8 +52,8 @@ MainDialog::MainDialog(QWidget *parent)
     updateTimer.setInterval(500);  // every half second
     connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onStatusBarUpdate()));
 
-    // Set up video recording
-    initVideo();
+    createCameraCollection();
+    setupCheckboxes();
 
     // Set up audio recording
     cycAudioBuf = new CycDataBuffer(CIRC_AUDIO_BUFF_SZ);
@@ -135,6 +136,8 @@ MainDialog::~MainDialog()
     }
     microphoneThread->stop();
     audioFileWriter->stop();
+
+    delete(cameraCollection);
 }
 
 
@@ -158,7 +161,7 @@ void MainDialog::onStartRec()
     ui.exitButton->setEnabled(false);
     ui.markersWidget->setEnabled(true);
 
-    for (unsigned int i=0; i<numCameras; i++)
+    for (int i=0; i<cameraCollection->camCount(); i++)
     {
         camCheckBoxes[i]->setEnabled(false);
         if (camCheckBoxes[i]->isChecked())
@@ -186,9 +189,9 @@ void MainDialog::onStopRec()
     ui.exitButton->setEnabled(true);
     ui.markersWidget->setEnabled(false);
 
-    for (unsigned int i=0; i<numCameras; i++)
+    for (int i=0; i<cameraCollection->camCount(); i++)
     {
-        camCheckBoxes[i]->setEnabled(cameras[i] != NULL || settings.dummyMode);
+        camCheckBoxes[i]->setEnabled(true);
         if(camCheckBoxes[i]->checkState() == Qt::Checked)
         {
             videoDialogs[i]->setIsRec(false);
@@ -204,7 +207,7 @@ void MainDialog::onStopRec()
 
 void MainDialog::onExit()
 {
-    for (unsigned int i=0; i<numCameras; i++)
+    for (int i=0; i<cameraCollection->camCount(); i++)
     {
         if(camCheckBoxes[i]->isChecked())
         {
@@ -273,54 +276,14 @@ void MainDialog::onAudioUpdate(unsigned char* _data)
 }
 
 
-void MainDialog::initVideo()
-{
-    dc1394camera_list_t*    camList;
-    dc1394error_t           err;
+void MainDialog::setupCheckboxes()
+{   // Construct and populate camera check boxes
 
-    for (unsigned int i=0; i < MAX_CAMERAS; i++)
-        cameras[i] = NULL;
+    int numCameras = cameraCollection->camCount();
 
-    if (settings.dummyMode)
+    for (int i=0; i<numCameras; i++)
     {
-        numCameras = MAX_CAMERAS;
-    }
-    else
-    {
-        dc1394Context = dc1394_new();
-        if(!dc1394Context)
-        {
-            cerr << "Cannot initialize!" << endl;
-            abort();
-        }
-
-        err = dc1394_camera_enumerate(dc1394Context, &camList);
-        if (err != DC1394_SUCCESS)
-        {
-            cerr << "Failed to enumerate cameras" << endl;
-            abort();
-        }
-        cout << camList->num << " camera(s) found" << endl;
-        numCameras = MAX_CAMERAS < camList->num ? MAX_CAMERAS : camList->num;
-
-        // Initialize the cameras
-        for (unsigned int i=0; i < numCameras; i++)
-        {
-            cameras[i] = dc1394_camera_new(dc1394Context, camList->ids[i].guid);
-            if (!cameras[i])
-            {
-                cerr << "Failed to initialize camera with guid " << camList->ids[0].guid << endl;
-                abort();
-            }
-            cout << "Using camera with GUID " << cameras[i]->guid << endl;
-        }
-        dc1394_camera_free_list(camList);
-    }
-
-    // Construct and populate camera check boxes
-    for (unsigned int i=0; i < numCameras; i++)
-    {
-        QString name = settings.dummyMode ? "Dummy" : cameras[i]->model;
+        QString name = cameraCollection->getCameraModel(i);
         if (name.length() > 20)
         {
             name.truncate(17);
@@ -340,7 +303,7 @@ void MainDialog::initVideo()
 void MainDialog::onCamToggled(bool _state)
 {
     int idx = -1;
-    for (unsigned int i=0; i < numCameras; i++)
+    for (int i=0; i<cameraCollection->camCount(); i++)
     {
         if (sender() == camCheckBoxes[i])
         {
@@ -348,15 +311,14 @@ void MainDialog::onCamToggled(bool _state)
             break;
         }
     }
-    if (idx < 0)
-    {
-        cerr << "Could not ID camera" << endl;
-        abort();
-    }
 
+    Q_ASSERT(idx >= 0);
+
+
+    // NOTE: the camera object is deleted in the VideoDialog's destructor
     if(_state)
     {
-        videoDialogs[idx] = new VideoDialog(cameras[idx], idx);
+        videoDialogs[idx] = new VideoDialog(cameraCollection->getCamera(idx), idx);
         videoDialogs[idx]->show();
     }
     else
@@ -366,3 +328,28 @@ void MainDialog::onCamToggled(bool _state)
     }
 }
 
+
+void MainDialog::createCameraCollection()
+{
+    bool success = false;
+
+    // trying dc1394
+    if (!settings.cameraFrontend.compare("dc1394"))
+    {
+        cameraCollection = new dc1394CameraCollection();
+        success = true;
+    }
+
+    // trying dummy - to be implemented later !
+    //if (!settings.cameraFrontend.compare("dummy"))
+    //{
+    //    cameraCollection = new DummyCameraCollection();
+    //    success = true;
+    //}
+
+    if (!success)
+    {
+        qFatal("Config file specifies unknown frontend type");
+        //qFatal("Config file specifies unknown frontend type: " + settings.cameraFrontend);
+    }
+}

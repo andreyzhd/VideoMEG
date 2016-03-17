@@ -21,7 +21,7 @@
 #include "common.h"
 
 // Camera configuration
-#define VIDEO_DEV_PATH      "/dev/video0"
+//#define VIDEO_DEV_PATH      "/dev/video0"
 #define N_CAMERA_BUFFERS    1
 #define MAX_CAMERAS         6
 

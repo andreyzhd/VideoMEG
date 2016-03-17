@@ -38,8 +38,10 @@
 class CameraCollection
 {
 public:
-    int camCount() = 0;
-    Camera* getCamera(int _cameraId, CycDataBuffer* _cycBuf) = 0;
+    virtual int camCount() = 0;
+    virtual Camera* getCamera(int _cameraId) = 0;
+    virtual QString getCameraModel(int _cameraId) = 0;
+    virtual ~CameraCollection() {};
 };
 
 #endif // CAMERACOLLECTION_H

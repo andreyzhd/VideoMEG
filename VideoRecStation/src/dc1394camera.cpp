@@ -22,23 +22,22 @@
 #include <time.h>
 #include <QCoreApplication>
 #include <stdlib.h>
+#include <QDebug>
 
 #include "dc1394camera.h"
-#include "config.h"
 #include "settings.h"
 
 using namespace std;
 
 
-dc1394Camera::dc1394Camera(dc1394camera_t* _camera, CycDataBuffer* _cycBuf)
+dc1394Camera::dc1394Camera(dc1394camera_t* _camera)
 {
     dc1394error_t err;
     Settings settings = Settings::getSettings();
 
-    cycBuf = _cycBuf;
     shouldStop = false;
-
     camera = _camera;
+    color = settings.color;
 
     /*-----------------------------------------------------------------------
      *  setup capture
@@ -57,7 +56,7 @@ dc1394Camera::dc1394Camera(dc1394camera_t* _camera, CycDataBuffer* _cycBuf)
         abort();
     }
 
-    err = dc1394_video_set_mode(camera, (settings.color ? DC1394_VIDEO_MODE_640x480_RGB8 : DC1394_VIDEO_MODE_640x480_MONO8));
+    err = dc1394_video_set_mode(camera, (color ? DC1394_VIDEO_MODE_640x480_RGB8 : DC1394_VIDEO_MODE_640x480_MONO8));
     if (err != DC1394_SUCCESS)
     {
         cerr << "Could not set video mode" << endl;
@@ -81,21 +80,18 @@ dc1394Camera::dc1394Camera(dc1394camera_t* _camera, CycDataBuffer* _cycBuf)
     }
 }
 
+void dc1394Camera::setBuffer(CycDataBuffer *_cycBuf)
+{
+    cycBuf = _cycBuf;
+}
+
 
 dc1394Camera::~dc1394Camera()
 {
     dc1394error_t err;
-    if (!camera)
-    {
-        return;
-    }
 
     err = dc1394_capture_stop(camera);
-    if (err != DC1394_SUCCESS)
-    {
-        cerr << "Could not stop video capture" << endl;
-        abort();
-    }
+    Q_ASSERT(err == DC1394_SUCCESS);
 }
 
 
@@ -107,7 +103,9 @@ void dc1394Camera::stoppableRun()
     struct timespec         timestamp;
     ChunkAttrib             chunkAttrib;
     unsigned int            chunkSize;
-    unsigned char*          fakeImage;
+    //unsigned char*          fakeImage;
+
+    Q_ASSERT(cycBuf);
 
     chunkSize = VIDEO_HEIGHT * VIDEO_WIDTH * (color ? 3 : 1);
     chunkAttrib.chunkSize = chunkSize;
@@ -144,11 +142,7 @@ void dc1394Camera::stoppableRun()
      *  have the camera start sending us data
      *-----------------------------------------------------------------------*/
     err = dc1394_video_set_transmission(camera, DC1394_ON);
-    if (err != DC1394_SUCCESS)
-    {
-        cerr << "Could not start camera iso transmission" << endl;
-        abort();
-    }
+    Q_ASSERT(err == DC1394_SUCCESS);
 
     // Start the acquisition loop
     while (!shouldStop)
@@ -185,13 +179,81 @@ void dc1394Camera::stoppableRun()
 }
 
 
-void dc1394Camera::Camera::start()
+void dc1394Camera::start()
 {
-    StoppableThread::start();
+    ::StoppableThread::start();
 }
 
 
-void dc1394Camera::Camera::stop()
+void dc1394Camera::stop()
 {
-    StoppableThread::stop();
+    ::StoppableThread::stop();
+}
+
+
+uint32_t dc1394Camera::scale(int _inp, uint32_t _minVal, uint32_t _maxVal)
+{
+    if(_inp < ::Camera::MIN_VAL)
+        _inp = ::Camera::MIN_VAL;
+
+    if(_inp > ::Camera::MAX_VAL)
+        _inp = ::Camera::MAX_VAL;
+
+    return(uint32_t(round(((double(_inp - ::Camera::MIN_VAL) / double(::Camera::MAX_VAL - ::Camera::MIN_VAL)) * (_maxVal - _minVal)) + _minVal)));
+}
+
+
+void dc1394Camera::setShutter(int _newVal)
+{
+    dc1394error_t   err;
+
+    err = dc1394_set_register(camera, SHUTTER_ADDR, scale(_newVal, SHUTTER_MIN_VAL, SHUTTER_MAX_VAL) + SHUTTER_OFFSET);
+
+    if (err != DC1394_SUCCESS)
+    {
+        qWarning() << "Could not set shutter register" << endl;
+    }
+}
+
+
+void dc1394Camera::setGain(int _newVal)
+{
+    dc1394error_t   err;
+
+    err = dc1394_set_register(camera, GAIN_ADDR, scale(_newVal, GAIN_MIN_VAL, GAIN_MAX_VAL) + GAIN_OFFSET);
+
+    if (err != DC1394_SUCCESS)
+    {
+        qWarning() << "Could not set gain register" << endl;
+    }
+}
+
+
+void dc1394Camera::setUV(int _newVal)
+{
+    dc1394error_t   err;
+    uv = _newVal;
+
+    // Since UV and VR live in the same register, we need to take care of both
+    err = dc1394_set_register(camera, WHITEBALANCE_ADDR, scale(_newVal, UV_MIN_VAL, UV_MAX_VAL) * UV_REG_SHIFT + vr + WHITEBALANCE_OFFSET);
+
+    if (err != DC1394_SUCCESS)
+    {
+        qWarning() << "Could not set white balance register" << endl;
+    }
+}
+
+
+void dc1394Camera::setVR(int _newVal)
+{
+    dc1394error_t   err;
+    vr = _newVal;
+
+    // Since UV and VR live in the same register, we need to take care of both
+    err = dc1394_set_register(camera, WHITEBALANCE_ADDR, scale(_newVal, VR_MIN_VAL, VR_MAX_VAL) + UV_REG_SHIFT * uv + WHITEBALANCE_OFFSET);
+
+    if (err != DC1394_SUCCESS)
+    {
+        qWarning() << "Could not set white balance register" << endl;
+    }
 }

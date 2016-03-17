@@ -18,6 +18,7 @@
  */
 
 
+#include <QDebug>
 #include "dc1394cameracollection.h"
 #include "dc1394camera.h"
 
@@ -29,29 +30,26 @@ dc1394CameraCollection::dc1394CameraCollection()
     dc1394Context = dc1394_new();
     if(!dc1394Context)
     {
-        cerr << "Cannot initialize!" << endl;
-        abort();
+        qFatal("Cannot initialize!");
     }
 
     err = dc1394_camera_enumerate(dc1394Context, &camList);
     if (err != DC1394_SUCCESS)
     {
-        cerr << "Failed to enumerate cameras" << endl;
-        abort();
+        qFatal("Failed to enumerate cameras");
     }
-    cout << camList->num << " camera(s) found" << endl;
+    qDebug() << camList->num << " camera(s) found" << endl;
     numCameras = MAX_CAMERAS < camList->num ? MAX_CAMERAS : camList->num;
 
     // Initialize the cameras
-    for (unsigned int i=0; i<numCameras; i++)
+    for (int i=0; i<numCameras; i++)
     {
         cameras[i] = dc1394_camera_new(dc1394Context, camList->ids[i].guid);
         if (!cameras[i])
         {
-            cerr << "Failed to initialize camera with guid " << camList->ids[i].guid << endl;
-            abort();
+            qFatal("Failed to initialize camera with guid %li", camList->ids[i].guid);
         }
-        cout << "Using camera with GUID " << cameras[i]->guid << endl;
+        qDebug() << "Using camera with GUID " << cameras[i]->guid << endl;
     }
     dc1394_camera_free_list(camList);
 }
@@ -60,7 +58,7 @@ dc1394CameraCollection::dc1394CameraCollection()
 dc1394CameraCollection::~dc1394CameraCollection()
 {
     // Free the cameras
-    for (unsigned int i=0; i<numCameras; i++)
+    for (int i=0; i<numCameras; i++)
     {
         dc1394_camera_free(cameras[i]);
     }
@@ -75,7 +73,13 @@ int dc1394CameraCollection::camCount()
 }
 
 
-Camera* dc1394CameraCollection::getCamera(int _cameraId, CycDataBuffer* _cycBuf)
+Camera* dc1394CameraCollection::getCamera(int _cameraId)
 {
-    return(new dc1394Camera(cameras[_cameraId], _cycBuf));
+    return(new dc1394Camera(cameras[_cameraId]));
+}
+
+
+QString dc1394CameraCollection::getCameraModel(int _cameraId)
+{
+    return(QString(cameras[_cameraId]->model));
 }

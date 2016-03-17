@@ -21,6 +21,7 @@
 #ifndef DC1394CAMERACOLLECTION_H
 #define DC1394CAMERACOLLECTION_H
 
+#include <dc1394/dc1394.h>
 #include "config.h"
 #include "cameracollection.h"
 
@@ -35,7 +36,8 @@ public:
     dc1394CameraCollection();
     ~dc1394CameraCollection();
     int camCount();
-    Camera* getCamera(int _cameraId, CycDataBuffer* _cycBuf);
+    Camera* getCamera(int _cameraId);
+    QString getCameraModel(int _cameraId);
 
 private:
     dc1394_t*           dc1394Context;

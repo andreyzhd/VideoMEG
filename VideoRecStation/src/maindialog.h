@@ -28,7 +28,7 @@
 
 #include "config.h"
 #include "ui_maindialog.h"
-#include "camera.h"
+#include "cameracollection.h"
 #include "microphonethread.h"
 #include "cycdatabuffer.h"
 #include "videofilewriter.h"
@@ -56,9 +56,17 @@ public slots:
     void onStatusBarUpdate();
 
 private:
-    void initVideo();
+    void setupCheckboxes();
+
+    /*!
+     * Create camera collection based on the frontend specified in the
+     * settings. The collection can be freed by just calling it's destructor.
+     */
+    void createCameraCollection();
 
     Ui::MainDialogClass ui;
+
+    CameraCollection*   cameraCollection;
 
     VideoDialog*        videoDialogs[MAX_CAMERAS];
     QCheckBox*          camCheckBoxes[MAX_CAMERAS];
