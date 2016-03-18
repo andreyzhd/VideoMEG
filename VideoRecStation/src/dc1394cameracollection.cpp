@@ -38,7 +38,7 @@ dc1394CameraCollection::dc1394CameraCollection()
     {
         qFatal("Failed to enumerate cameras");
     }
-    qDebug() << camList->num << " camera(s) found" << endl;
+    qDebug() << camList->num << " camera(s) found";
     numCameras = MAX_CAMERAS < camList->num ? MAX_CAMERAS : camList->num;
 
     // Initialize the cameras
@@ -49,7 +49,7 @@ dc1394CameraCollection::dc1394CameraCollection()
         {
             qFatal("Failed to initialize camera with guid %li", camList->ids[i].guid);
         }
-        qDebug() << "Using camera with GUID " << cameras[i]->guid << endl;
+        qDebug() << "Using camera with GUID " << cameras[i]->guid;
     }
     dc1394_camera_free_list(camList);
 }

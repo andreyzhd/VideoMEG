@@ -37,8 +37,7 @@ VideoFileWriter::VideoFileWriter(CycDataBuffer* _cycBuf, const char* _path, int 
 
     if(!buf)
     {
-        cerr << "Error allocating memory!" << endl;
-        abort();
+        qFatal("Error allocating memory!");
     }
 
     memcpy(buf, MAGIC_VIDEO_STR, strlen(MAGIC_VIDEO_STR));          // string identifying the file type

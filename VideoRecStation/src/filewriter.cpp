@@ -36,22 +36,19 @@ FileWriter::FileWriter(CycDataBuffer* _cycBuf, const char* _path, const char* _s
     path = (char*)malloc(strlen(_path)+1);
     if(!path)
     {
-        cerr << "Cannot allocate memory!" << endl;
-        abort();
+        qFatal("Cannot allocate memory!");
     }
 
     suffix = (char*)malloc(strlen(_suffix)+1);
     if(!suffix)
     {
-        cerr << "Cannot allocate memory!" << endl;
-        abort();
+        qFatal("Cannot allocate memory!");
     }
 
     ext = (char*)malloc(strlen(_ext)+1);
     if(!ext)
     {
-        cerr << "Cannot allocate memory!" << endl;
-        abort();
+        qFatal("Cannot allocate memory!");
     }
 
     strcpy(path, _path);
@@ -107,8 +104,7 @@ void FileWriter::stoppableRun()
                 if(outData.fail())
                 {
                     // TODO: Add more elaborate error checking
-                    cerr << "Error opening the file " << nameBuf << endl;
-                    abort();
+                    qFatal("Error opening the file %s", nameBuf);
                 }
                 readableFileName = QFileInfo(nameBuf).fileName();
                 header = getHeader(&headerLen);

@@ -62,7 +62,7 @@ void DummyCamera::stoppableRun()
     sch_param.sched_priority = CAM_THREAD_PRIORITY;
     if (sched_setscheduler(0, SCHED_FIFO, &sch_param))
     {
-        qWarning() << "Cannot set camera thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems." << endl;
+        qWarning() << "Cannot set camera thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems.";
     }
 
     fakeImage = new unsigned char[chunkSize];
@@ -73,7 +73,7 @@ void DummyCamera::stoppableRun()
         clock_gettime(CLOCK_REALTIME, &timestamp);
         chunkAttrib.timestamp = timestamp.tv_nsec / 1000000 + timestamp.tv_sec * 1000;
 
-        for(int i=0; i<chunkSize; i++)
+        for(unsigned int i=0; i<chunkSize; i++)
         {
             fakeImage[i] = (unsigned char) qrand();
         }

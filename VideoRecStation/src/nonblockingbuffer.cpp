@@ -17,9 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
 #include <stdlib.h>
 #include <string.h>
+#include <QDebug>
 #include <QMutexLocker>
 
 #include "nonblockingbuffer.h"
@@ -40,15 +40,13 @@ NonBlockingBuffer::NonBlockingBuffer(int _bufSize, long _chunkSize)
     dataBuf = (char*)malloc(bufSize * chunkSize);
     if (!dataBuf)
     {
-        cerr << "Cannot allocate memory for non-blocking buffer" << endl;
-        abort();
+        qFatal("Cannot allocate memory for non-blocking buffer");
     }
 
     zeroChunk = (char*)malloc(chunkSize);
     if (!zeroChunk)
     {
-        cerr << "Cannot allocate memory for the chunk of zeros" << endl;
-        abort();
+        qFatal("Cannot allocate memory for the chunk of zeros");
     }
 
     memset(zeroChunk, 0, chunkSize);
@@ -70,7 +68,9 @@ void NonBlockingBuffer::insertChunk(void* _data)
     // if the buffer is full discard the data
     if((insertPtr+1) % bufSize == getPtr)
     {
-        // cerr << "Non-blocking buffer overflow, discarding the data" << endl;
+        // TODO: Make some sensible here. The warning is useful, but
+        // happens too often, printing it crowds the program output.
+        // qWarning() << "Non-blocking buffer overflow, discarding the data";
         return;
     }
 
@@ -87,7 +87,9 @@ void* NonBlockingBuffer::getChunk()
 
     if(insertPtr==getPtr)
     {
-        // cerr << "Non-blocking buffer underflow, returning zeros" << endl;
+        // TODO: Make some sensible here. The warning is useful, but
+        // happens too often, printing it crowds the program output.
+        // qWarning() << "Non-blocking buffer underflow, returning zeros";
         return(zeroChunk);
     }
     else

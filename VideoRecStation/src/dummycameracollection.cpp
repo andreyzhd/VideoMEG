@@ -45,5 +45,5 @@ Camera* DummyCameraCollection::getCamera(int _cameraId)
 
 QString DummyCameraCollection::getCameraModel(int _cameraId)
 {
-    return(QString("Dummy no. ") + QString(_cameraId));
+    return(QString("Dummy"));
 }

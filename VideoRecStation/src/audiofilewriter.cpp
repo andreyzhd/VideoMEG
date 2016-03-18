@@ -40,8 +40,7 @@ AudioFileWriter::AudioFileWriter(CycDataBuffer* _cycBuf, const char* _path)
 
     if(!buf)
     {
-        cerr << "Error allocating memory!" << endl;
-        abort();
+        qFatal("Error allocating memory!");
     }
 
     memcpy(buf, MAGIC_AUDIO_STR, strlen(MAGIC_AUDIO_STR));                                  // string identifying the file type

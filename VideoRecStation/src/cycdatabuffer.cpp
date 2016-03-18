@@ -18,7 +18,6 @@
  */
 
 #include <stdlib.h>
-#include <iostream>
 
 #include "config.h"
 #include "cycdatabuffer.h"
@@ -39,8 +38,7 @@ CycDataBuffer::CycDataBuffer(int _bufSize)
     dataBuf = (unsigned char*)malloc(bufSize + 2 * (int(bufSize*MAX_CHUNK_SIZE) + sizeof(ChunkAttrib)));
     if (!dataBuf)
     {
-        cerr << "Cannot allocate memory for circular buffer" << endl;
-        abort();
+        qFatal("Cannot allocate memory for circular buffer");
     }
 }
 
@@ -59,8 +57,7 @@ void CycDataBuffer::insertChunk(unsigned char* _data, ChunkAttrib _attrib)
     // is close to full.
     if (buffSemaphore->available() >=  bufSize * (1-CIRC_BUF_MARG))
     {
-        cerr << "Circular buffer overflow!" << endl;
-        abort();
+        qFatal("Circular buffer overflow!");
     }
 
     // Make sure that the safety margin is at least several (four) times the
@@ -68,8 +65,7 @@ void CycDataBuffer::insertChunk(unsigned char* _data, ChunkAttrib _attrib)
     // consumer and producer threads when the buffer is close to full.
     if(_attrib.chunkSize+sizeof(ChunkAttrib) > bufSize*MAX_CHUNK_SIZE)
     {
-        cerr << "The chunk size is too large!" << endl;
-        abort();
+        qFatal("The chunk size is too large!");
     }
 
     // insert the data into the circular buffer

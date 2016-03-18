@@ -19,7 +19,7 @@
 
 #include <time.h>
 #include <sched.h>
-#include <iostream>
+#include <QDebug>
 
 #include "microphonethread.h"
 #include "config.h"
@@ -38,8 +38,7 @@ MicrophoneThread::MicrophoneThread(CycDataBuffer* _cycBuf)
     rc = snd_pcm_open(&pcmHandle, settings.inpAudioDev.toLocal8Bit().data(), SND_PCM_STREAM_CAPTURE, 0);
     if (rc < 0)
     {
-        cerr << "unable to open pcm device: " << snd_strerror(rc) << endl;
-        abort();
+        qFatal("unable to open pcm device: %s", snd_strerror(rc));
     }
 
     /* Allocate a hardware parameters object. */
@@ -48,8 +47,7 @@ MicrophoneThread::MicrophoneThread(CycDataBuffer* _cycBuf)
     /* Fill it in with default values. */
     if (snd_pcm_hw_params_any(pcmHandle, params) < 0)
     {
-        cerr << "Can not configure PCM device: " << settings.inpAudioDev.toLocal8Bit().data() << endl;
-        abort();
+        qFatal("Can not configure PCM device: %s", settings.inpAudioDev.toLocal8Bit().data());
     }
 
     /* Set the desired hardware parameters. */
@@ -74,38 +72,34 @@ MicrophoneThread::MicrophoneThread(CycDataBuffer* _cycBuf)
     /* Set number of periods */
     if (snd_pcm_hw_params_set_periods(pcmHandle, params, settings.nPeriods, 0) < 0)
     {
-      cerr << "Error setting periods" << endl;
-      abort();
+      qFatal("Error setting periods");
     }
 
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(pcmHandle, params);
     if (rc < 0)
     {
-        cerr << "unable to set hw parameters: " << snd_strerror(rc) << endl;
+        qFatal("unable to set hw parameters: %s", snd_strerror(rc));
         abort();
     }
 
     snd_pcm_hw_params_get_rate(params, &val, NULL);
     if (val != settings.sampRate)
     {
-        cout << "unable to set sampling rate: requested " << settings.sampRate << ", actual " << val << endl;
-        abort();
+        qFatal("unable to set sampling rate: requested %i, actual %i", settings.sampRate, val);
     }
 
     snd_pcm_hw_params_get_period_size(params, &framesPerPeriod, NULL);
     if (settings.framesPerPeriod != framesPerPeriod)
     {
-        cout << "unable to set frames per period: requested " << settings.framesPerPeriod << ", actual " << framesPerPeriod << endl;
-        abort();
+        qFatal("unable to set frames per period: requested %i, actual %li", settings.framesPerPeriod, framesPerPeriod);
     }
 
     /* Use a buffer large enough to hold one period */
     periodBuffer = (unsigned char*)malloc(framesPerPeriod * N_CHANS * sizeof(AUDIO_DATA_TYPE));
     if (!periodBuffer)
     {
-        cerr << "Failed to allocate period buffer" << endl;
-        abort();
+        qFatal("Failed to allocate period buffer");
     }
 }
 
@@ -130,7 +124,7 @@ void MicrophoneThread::stoppableRun()
     sch_param.sched_priority = MIC_THREAD_PRIORITY;
     if (sched_setscheduler(0, SCHED_FIFO, &sch_param))
     {
-        cerr << "Cannot set microphone thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems." << endl;
+        qWarning() << "Cannot set microphone thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems.";
     }
 
     // Start the acquisition loop
@@ -142,16 +136,16 @@ void MicrophoneThread::stoppableRun()
         if (rc == -EPIPE)
         {
             // EPIPE means overrun
-            cerr << "Overrun occurred" << endl;
+            qWarning() << "Overrun occurred";
             snd_pcm_prepare(pcmHandle);
         }
         else if (rc < 0)
         {
-            cerr << "Error from read: " << snd_strerror(rc) << endl;
+            qWarning() << "Error from read: " << snd_strerror(rc);
         }
         else if (rc != (int)framesPerPeriod)
         {
-            cerr << "short read, read " << rc << " frames instead of " << framesPerPeriod << endl;
+            qWarning() << "short read, read " << rc << " frames instead of " << framesPerPeriod;
         }
 
         msec = timestamp.tv_nsec / 1000000;

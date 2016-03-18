@@ -17,7 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
 #include <sched.h>
 #include <time.h>
 #include <QCoreApplication>
@@ -115,7 +114,7 @@ void dc1394Camera::stoppableRun()
     sch_param.sched_priority = CAM_THREAD_PRIORITY;
     if (sched_setscheduler(0, SCHED_FIFO, &sch_param))
     {
-        qWarning() << "Cannot set camera thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems." << endl;
+        qWarning() << "Cannot set camera thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems.";
     }
 
     /*-----------------------------------------------------------------------
@@ -191,7 +190,7 @@ void dc1394Camera::setShutter(int _newVal)
 
     if (err != DC1394_SUCCESS)
     {
-        qWarning() << "Could not set shutter register" << endl;
+        qWarning() << "Could not set shutter register";
     }
 }
 
@@ -204,7 +203,7 @@ void dc1394Camera::setGain(int _newVal)
 
     if (err != DC1394_SUCCESS)
     {
-        qWarning() << "Could not set gain register" << endl;
+        qWarning() << "Could not set gain register";
     }
 }
 
@@ -219,7 +218,7 @@ void dc1394Camera::setUV(int _newVal)
 
     if (err != DC1394_SUCCESS)
     {
-        qWarning() << "Could not set white balance register" << endl;
+        qWarning() << "Could not set white balance register";
     }
 }
 
@@ -234,6 +233,6 @@ void dc1394Camera::setVR(int _newVal)
 
     if (err != DC1394_SUCCESS)
     {
-        qWarning() << "Could not set white balance register" << endl;
+        qWarning() << "Could not set white balance register";
     }
 }

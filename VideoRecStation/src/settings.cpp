@@ -30,6 +30,8 @@ volatile bool Settings::existsInstance = false;
 
 Settings::Settings()
 {
+    qDebug() << "Settings constructor called";
+
     // Don't allow to create more than one instance. Because on the atomicity
     // of test-and-set is not guaranteed, it might fail in (hopefully) very rare
     // cases of race condition.
@@ -112,6 +114,8 @@ Settings::Settings()
 
 Settings::~Settings()
 {
+    qDebug() << "Settings destructor called";
+
     QSettings settings(ORG_NAME, APP_NAME);
 
     settings.setValue("video/jpeg_quality", jpgQuality);

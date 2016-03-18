@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#include <QDebug>
 
 #include "config.h"
 #include "speakerthread.h"
@@ -37,8 +37,7 @@ SpeakerThread::SpeakerThread(NonBlockingBuffer* _buffer)
     rc = snd_pcm_open(&sndHandle, settings.outAudioDev.toLocal8Bit().data(), SND_PCM_STREAM_PLAYBACK, 0);
     if (rc < 0)
     {
-        cerr << "unable to open pcm device: " << snd_strerror(rc) << endl;
-        exit(EXIT_FAILURE);
+        qFatal("unable to open pcm device: %s", snd_strerror(rc));
     }
 
     snd_pcm_hw_params_alloca(&params);          // Allocate a hardware parameters object
@@ -60,16 +59,14 @@ SpeakerThread::SpeakerThread(NonBlockingBuffer* _buffer)
     /* Set number of periods */
     if (snd_pcm_hw_params_set_periods(sndHandle, params, settings.nPeriods, 0) < 0)
     {
-      cerr << "Error setting periods" << endl;
-      abort();
+        qFatal("Error setting periods");
     }
 
     // Write the parameters to the driver
     rc = snd_pcm_hw_params(sndHandle, params);
     if (rc < 0)
     {
-        cerr << "unable to set hw parameters: " << snd_strerror(rc) << endl;
-        exit(EXIT_FAILURE);
+        qFatal("unable to set hw parameters: %s", snd_strerror(rc));
     }
 
     // Verify the parameters
@@ -77,16 +74,14 @@ SpeakerThread::SpeakerThread(NonBlockingBuffer* _buffer)
     snd_pcm_hw_params_get_rate(params, &sampRate, NULL);
     if (sampRate != settings.sampRate)
     {
-        cerr << "unable to set sampling rate: requested " << settings.sampRate << ", actual " << sampRate << endl;
-        exit(EXIT_FAILURE);
+        qFatal("unable to set sampling rate: requested %i, actual %i", settings.sampRate, sampRate);
     }
 
     framesPerPeriod = 0;
     snd_pcm_hw_params_get_period_size(params, &framesPerPeriod, NULL);
     if (settings.framesPerPeriod != framesPerPeriod)
     {
-        cerr << "unable to set frames per period: requested " << settings.framesPerPeriod << ", actual " << framesPerPeriod << endl;
-        exit(EXIT_FAILURE);
+        qFatal("unable to set frames per period: requested %i, actual %li", settings.framesPerPeriod, framesPerPeriod);
     }
 }
 
@@ -106,7 +101,7 @@ void SpeakerThread::stoppableRun()
     sch_param.sched_priority = SPK_THREAD_PRIORITY;
     if (sched_setscheduler(0, SCHED_FIFO, &sch_param))
     {
-        cerr << "Cannot set speaker thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems." << endl;
+        qWarning() << "Cannot set speaker thread priority. Continuing nevertheless, but don't blame me if you experience any strange problems.";
     }
 
     // Start the playback loop
@@ -116,16 +111,16 @@ void SpeakerThread::stoppableRun()
         if (rc == -EPIPE)
         {
             /* EPIPE means underrun */
-            cerr << "underrun occurred" << endl;
+            qWarning() << "underrun occurred";
             snd_pcm_prepare(sndHandle);
         }
         else if (rc < 0)
         {
-            cerr << "error from writei: " << snd_strerror(rc) << endl;
+            qWarning() << "error from write: " << snd_strerror(rc);
         }
         else if (rc != (int)settings.framesPerPeriod)
         {
-            cerr << "short write, write " << rc << " frames" << endl;
+            qWarning() << "short write, write " << rc << " frames";
         }
     }
 }

@@ -18,7 +18,7 @@
  */
 
 
-#include <iostream>
+#include <QDebug>
 #include "stoppablethread.h"
 
 using namespace std;
@@ -30,30 +30,30 @@ StoppableThread::StoppableThread()
     id = nextId++;
     shouldStop = false;
 
-    clog << "StoppableThread no. " << id << " is created" << endl;
+    qDebug() << "StoppableThread no. " << id << " is created";
 }
 
 
 StoppableThread::~StoppableThread()
 {
-    clog << "StoppableThread no. " << id << " is destroyed" << endl;
+    qDebug() << "StoppableThread no. " << id << " is destroyed";
 }
 
 
 void StoppableThread::run()
 {
-    clog << "Running StoppableThread no. " << id << " ..." << endl;
+    qDebug() << "Running StoppableThread no. " << id << " ...";
     stoppableRun();
 }
 
 
 void StoppableThread::stop()
 {
-    clog << "Stopping StoppableThread no. " << id << " ...";
+    qDebug() << "Stopping StoppableThread no. " << id << " ...";
 
     shouldStop = true;
     this->wait();
 
-    clog << " done" << endl;
+    qDebug() << "    ....done";
 }
 

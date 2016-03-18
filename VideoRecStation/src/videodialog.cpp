@@ -18,8 +18,6 @@
  */
 
 
-#include <iostream>
-
 #include "videodialog.h"
 #include "config.h"
 
