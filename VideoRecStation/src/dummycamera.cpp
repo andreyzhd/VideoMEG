@@ -25,7 +25,7 @@ DummyCamera::DummyCamera()
 {
     qDebug() << "DummyCamera constructor is called";
 
-    Settings settings = Settings::getSettings();
+    Settings& settings = Settings::getSettings();
 
     shouldStop = false;
     color = settings.color;

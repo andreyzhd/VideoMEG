@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <QFileInfo>
+#include <QDebug>
 
 #include "filewriter.h"
 
@@ -123,7 +124,7 @@ void FileWriter::stoppableRun()
                 outData.close();
                 if (chmod(nameBuf, S_IRUSR | S_IRGRP | S_IROTH))
                 {
-                    cerr << "Could net set file read-only";
+                    qWarning() << "Could net set file read-only";
                 }
             }
         }
@@ -137,7 +138,7 @@ void FileWriter::stoppableRun()
                 outData.close();
                 if (chmod(nameBuf, S_IRUSR | S_IRGRP | S_IROTH))
                 {
-                    cerr << "Could net set file read-only";
+                    qWarning() << "Could net set file read-only";
                 }
             }
             return;

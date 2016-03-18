@@ -36,9 +36,6 @@
  * When stopping the thread always call the stop() method while chunks are
  * still being continuously inserted into the CycDataBuffer associated with
  * the object - otherwise stop() will hang forever.
- *
- * Derived classes should typically call init() inside the constructor and
- * cleanup() inside the destructor.
  */
 class FileWriter : public StoppableThread
 {

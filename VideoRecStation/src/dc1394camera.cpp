@@ -34,7 +34,7 @@ dc1394Camera::dc1394Camera(dc1394camera_t* _camera)
     qDebug() << "dc1394Camera constructor is called";
 
     dc1394error_t err;
-    Settings settings = Settings::getSettings();
+    Settings& settings = Settings::getSettings();
 
     shouldStop = false;
     camera = _camera;

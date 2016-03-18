@@ -68,7 +68,7 @@ void NonBlockingBuffer::insertChunk(void* _data)
     // if the buffer is full discard the data
     if((insertPtr+1) % bufSize == getPtr)
     {
-        // TODO: Make some sensible here. The warning is useful, but
+        // TODO: Make something sensible here. The warning is useful, but
         // happens too often, printing it crowds the program output.
         // qWarning() << "Non-blocking buffer overflow, discarding the data";
         return;
@@ -87,7 +87,7 @@ void* NonBlockingBuffer::getChunk()
 
     if(insertPtr==getPtr)
     {
-        // TODO: Make some sensible here. The warning is useful, but
+        // TODO: Make something sensible here. The warning is useful, but
         // happens too often, printing it crowds the program output.
         // qWarning() << "Non-blocking buffer underflow, returning zeros";
         return(zeroChunk);

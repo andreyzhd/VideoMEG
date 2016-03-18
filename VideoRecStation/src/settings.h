@@ -72,10 +72,12 @@ public:
     QString         markersStoragePath;
 
     static Settings&    getSettings();
-    ~Settings();
+    Settings(const Settings&) = delete;
+    Settings& operator=(Settings const&) = delete;
 
 private:
     Settings();
+    ~Settings();
 
     // true if one instance of the class already exists---used to prevent multiple instances
     static volatile bool existsInstance;
