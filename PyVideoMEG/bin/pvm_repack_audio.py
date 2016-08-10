@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/python -tt
+
 """
 Repack an audio file (change the buffer size).
 
-Usage: repack_audio input_file new_buffer_sz output_file
+Usage: pvm_repack_audio input_file new_buffer_sz output_file
 
 ---------------------------------------------------------------------------
 Author: Andrey Zhdanov
