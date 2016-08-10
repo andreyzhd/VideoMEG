@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/python -tt
+
 """
 Print to the standard output some info about video or audio file
 

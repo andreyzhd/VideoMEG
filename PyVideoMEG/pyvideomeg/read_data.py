@@ -68,6 +68,96 @@ def ts2str(ts):
     timestr = timestr[0:-5] + ('.%03i' % (ts % 1000)) + ' ' + yearstr
     return timestr
     
+def repair_file(file_name, fixed_file_name):
+    """
+    Try to repair a corrupted audio or video file. Assume that the corruption
+    happened in the end of file, e.g. the file is valid until certain point
+    """
+    inp_file = open(file_name, 'rb')   
+    is_audio = False
+    
+    ##---------------------------------------------------------------------
+    # Read the header
+    #
+    
+    # Check the magick string
+    if inp_file.read(len('ELEKTA_AUDIO_FILE')) == 'ELEKTA_AUDIO_FILE':
+        is_audio = True
+    else:        
+        inp_file.seek(0, 0)
+        assert(inp_file.read(len('ELEKTA_VIDEO_FILE')) == 'ELEKTA_VIDEO_FILE')
+    
+    # Read the file version
+    ver = struct.unpack('I', inp_file.read(4))[0]
+    if ver < 1 or ver > 3:
+        raise UnknownVersionError()        
+        
+    if ver == 3:
+        # Read site_id and is_sender data
+        id_sender_data = inp_file.read(2)
+        assert(len(id_sender_data) == 2)
+        
+    if is_audio:
+        srate_nchan_data = inp_file.read(8)
+        assert(len(srate_nchan_data) == 8)
+        
+    # Get the file size
+    begin_data = inp_file.tell()
+    inp_file.seek(0, 2)
+    end_data = inp_file.tell()
+    inp_file.seek(begin_data, 0)  
+
+    ##---------------------------------------------------------------------
+    # Read the first chunk
+    # 
+    ts, block_id, sz, total_sz = _read_attrib(inp_file, ver)
+    assert(ts != -1)
+    inp_file.seek(-(total_sz-sz), 1)
+    buf = inp_file.read(total_sz)
+    assert(len(buf) == total_sz)
+        
+    ##---------------------------------------------------------------------
+    # Recovered enough data, start writing the output file
+    #
+    out_file = open(fixed_file_name, 'wb')
+    
+    if is_audio:
+        out_file.write('ELEKTA_AUDIO_FILE')
+    else:
+        out_file.write('ELEKTA_VIDEO_FILE')
+        
+    out_file.write(struct.pack('I', ver))
+    
+    if ver == 3:
+        out_file.write(id_sender_data)
+        
+    if is_audio:
+        out_file.write(srate_nchan_data)
+        
+    out_file.write(buf)
+        
+    ##---------------------------------------------------------------------
+    # Start copying the data
+    #
+    while inp_file.tell() < end_data:
+        ts, block_id, sz, cur_total_sz = _read_attrib(inp_file, ver)
+        if ts == -1 or (is_audio and cur_total_sz != total_sz):
+            inp_file.close()
+            out_file.close()
+            return
+            
+        inp_file.seek(-(cur_total_sz-sz), 1)
+        buf = inp_file.read(cur_total_sz)
+        if len(buf) != cur_total_sz:
+            inp_file.close()
+            out_file.close()
+            return
+            
+        out_file.write(buf)
+  
+    inp_file.close()
+    out_file.close()
+    
     
 class AudioData:
     """
@@ -104,13 +194,16 @@ class AudioData:
         
         ts, block_id, self.buf_sz, total_sz = _read_attrib(data_file, self.ver)
         data_file.seek(begin_data, 0)
+
+        assert((end_data - begin_data) % total_sz == 0)
         
-        n_chunks = (end_data - begin_data) / total_sz
+        n_chunks = (end_data - begin_data) // total_sz        
         self.raw_audio = bytearray(n_chunks * self.buf_sz)
         self.ts = numpy.zeros(n_chunks)
 
         for i in range(n_chunks):
-            ts, block_id, sz, total_sz = _read_attrib(data_file, self.ver)
+            ts, block_id, sz, cur_total_sz = _read_attrib(data_file, self.ver)
+            assert(cur_total_sz == total_sz)
             self.raw_audio[self.buf_sz*i : self.buf_sz*(i+1)] = data_file.read(sz)
             self.ts[i] = ts
 
@@ -182,16 +275,23 @@ class VideoData:
             
         else:
             raise UnknownVersionError()
+            
+        # get the file size
+        begin_data = self._file.tell()
+        self._file.seek(0, 2)
+        end_data = self._file.tell()
+        self._file.seek(begin_data, 0)
 
         self.ts = numpy.array([])
         self._frame_ptrs = []
-        ts, block_id, sz, total_sz = _read_attrib(self._file, self.ver)
 
-        while ts != -1:        # we did not reach end of file
+        while self._file.tell() < end_data:     # we did not reach end of file
+            ts, block_id, sz, total_sz = _read_attrib(self._file, self.ver)
+            assert(ts != -1)
             self.ts = numpy.append(self.ts, ts)
             self._frame_ptrs.append((self._file.tell(), sz))
+            assert(self._file.tell() + sz <= end_data)
             self._file.seek(sz, 1)
-            ts, block_id, sz, total_sz = _read_attrib(self._file, self.ver)
             
         self.nframes = self.ts.size
             

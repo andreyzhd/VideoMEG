@@ -4,7 +4,7 @@
 Merge two video files into one (side-by-side) and export the result in a
 standard video format. Requires mencoder.
 
-Usage: merge video_file_name_1 video_file_name_2 output_file_name
+Usage: pvm_merge video_file_name_1 video_file_name_2 output_file_name
 
 ---------------------------------------------------------------------------
 Author: Andrey Zhdanov
