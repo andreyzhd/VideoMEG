@@ -308,7 +308,54 @@ class VideoData:
         
         
         
-        
+class EvlData:
+    """
+    Reads the Event-list from .evl file.
+    To read initialize with filename.
+    """
+    def __init__(self, file_name):
+        f = open(file_name, 'r')
+        assert(f.read(len("(videomeg::")) == "(videomeg::")
+        self.source_file = ""
+        self.events = []
+
+        read_events = False
+        # Only except to find souce-file and events
+        for line in f:
+            if read_events:
+                if line[:2] == "))":
+                    read_events = False
+                else:
+                    # Expect form ((:time xxx) (:class :"yyy") (:length zzz) (:annotation "www"))
+                    stripped = line.lstrip(" )").rstrip(")")
+                    pieced = stripped.split(") (")
+                    time = pieced[0].rpartition(' ')[2]
+                    mark = pieced[1].rpartition(':')[2]
+                    length = pieced[2].rpartition(' ')[2]
+                    annotation = pieced[3].partition(" \"")[2][:-1]
+                    self.events.append(Event(time, mark, length, annotation))
+            elif line.lstrip().startswith(":source-file"):
+                self.source_file = line.partition(" \"")[2][:-1]
+            elif line.lstrip().startswith(":events"):
+                read_events = True
+
+    
+class Event:
+    """
+    Contains data from single event.
+    """
+    def __init__(self, time, mark, length, annotation):
+        self.time = float(time)
+        self.mark = mark
+        self.duration = float(length)
+        self.annotation = annotation
+
+    def __str__(self):
+        return "Event start-time: " + self.time + " and duration: " + self.duration    
+    
+    def __repr__(self):
+        return ("Start-time: " + str(self.time) + "\nClass: " + self.mark + 
+            "\nLength: " + str(self.duration) + "\nAnnotation: " + self.annotation)
         
         
         
