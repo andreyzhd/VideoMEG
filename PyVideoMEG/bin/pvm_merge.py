@@ -29,7 +29,7 @@ import tempfile
 import shutil
 import numpy
 
-import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 import StringIO
 
 import pyvideomeg
