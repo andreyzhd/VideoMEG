@@ -27,35 +27,33 @@ class OverWriteError(Exception):
 
 class VideoFile(object):
     """
-    To read a video file initialize VideoData object with file name. You can
-    then get the frame times from the object's timestamps variable. To get individual
-    frames use get_frame function.
+    .Video.dat file
     """
     def __init__(self, file_name, ver, site_id=None, is_sender=None):
         if path.isfile(file_name):
-            raise OverWriteError()
-        self._file = open(file_name, 'wb')
-        self._file.write('ELEKTA_VIDEO_FILE')  # Elekta magic string
-        #self.ver = struct.pack('I', self._file.read(4))[0]
-
-        if ver == 1 or ver == 2:
-            self._file.write(struct.pack('I', ver))
-            self.site_id = -1
-            self.is_sender = -1
-            self.ver = ver
-        elif ver == 3:
-            self._file.write(struct.pack('I', ver))
-            self._file.write(struct.pack('B', 0) if site_id is None else struct.pack('B', 1))
-            self._file.write(struct.pack('B', 0) if is_sender is None else struct.pack('B', 1))
-            self.ver = ver
+            raise OverWriteError("Won't allow overwriting. File exists on path:\n" +
+                                 file_name)
         else:
-            raise UnknownVersionError()
+            self._file = open(file_name, 'wb')
+            self._file.write('ELEKTA_VIDEO_FILE')  # Elekta magic string
 
-        # start of the file
 
-        self.timestamps = numpy.array([])
-        self._frame_ptrs = []
-        self._nframes = 0
+            if ver == 1 or ver == 2:
+                self._file.write(struct.pack('I', ver))
+                self.site_id = -1
+                self.is_sender = -1
+                self.ver = ver
+            elif ver == 3:
+                self._file.write(struct.pack('I', ver))
+                self._file.write(struct.pack('B', 0) if site_id is None else struct.pack('B', 1))
+                self._file.write(struct.pack('B', 0) if is_sender is None else struct.pack('B', 1))
+                self.ver = ver
+            else:
+                raise UnknownVersionError()
+
+            self.timestamps = numpy.array([])
+            self._frame_ptrs = []
+            self._nframes = 0
 
     def __del__(self):
         self._file.close()
@@ -81,3 +79,15 @@ class VideoFile(object):
         offset, frame_sz = self._frame_ptrs[indx]
         self._file.seek(offset)
         return self._file.read(frame_sz)
+
+    def check_sanity(self):
+        """
+        Performs sanity checks against VideoFile, and reports problems.
+        """
+        for i in range(1, len(self.timestamps)):
+            if self.timestamps[i - 1] >= self.timestamps[i]:
+                print "Timestamps don't increase expectedly."
+                break
+        if self._nframes != len(self.timestamps):
+            print "Framecount doesn't match the count of timestamps."
+        

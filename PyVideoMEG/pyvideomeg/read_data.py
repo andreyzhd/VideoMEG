@@ -254,7 +254,7 @@ class AudioData:
         
         return audio, audio_ts
         
-        
+
 class VideoData:
     """
     To read a video file initialize VideoData object with file name. You can
@@ -315,7 +315,7 @@ class EvlData:
     """
     def __init__(self, file_name):
         f = open(file_name, 'r')
-        assert(f.read(len("(videomeg::")) == "(videomeg::")
+        assert f.read(len("(videomeg::")) == "(videomeg::"
         self.source_file = ""
         self.events = []
 
@@ -330,23 +330,24 @@ class EvlData:
                     stripped = line.lstrip(" )").rstrip(")")
                     pieced = stripped.split(") (")
                     time = pieced[0].rpartition(' ')[2]
-                    mark = pieced[1].rpartition(':')[2]
+                    _class = pieced[1].rpartition(':')[2]
                     length = pieced[2].rpartition(' ')[2]
                     annotation = pieced[3].partition(" \"")[2][:-1]
-                    self.events.append(Event(time, mark, length, annotation))
+                    self.events.append(Event(time, _class, length, annotation))
             elif line.lstrip().startswith(":source-file"):
                 self.source_file = line.partition(" \"")[2][:-1]
             elif line.lstrip().startswith(":events"):
                 read_events = True
 
-    
+
 class Event:
     """
     Contains data from single event.
+    Time is floating point s.
     """
-    def __init__(self, time, mark, length, annotation):
+    def __init__(self, time, _class, length, annotation):
         self.time = float(time)
-        self.mark = mark
+        self._class = _class
         self.duration = float(length)
         self.annotation = annotation
 
@@ -354,7 +355,7 @@ class Event:
         return "Event start-time: " + self.time + " and duration: " + self.duration    
     
     def __repr__(self):
-        return ("Start-time: " + str(self.time) + "\nClass: " + self.mark + 
+        return ("Start-time: " + str(self.time) + "\nClass: " + self._class + 
             "\nLength: " + str(self.duration) + "\nAnnotation: " + self.annotation)
         
         
