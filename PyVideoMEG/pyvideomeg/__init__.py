@@ -16,4 +16,5 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from .read_data import AudioData, VideoData, UnknownVersionError, ts2str, repair_file
+from .video_writer import OverWriteError, VideoFile
 from .comp_tstamps import comp_tstamps
