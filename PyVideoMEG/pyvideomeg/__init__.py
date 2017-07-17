@@ -15,6 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-from .read_data import AudioData, VideoData, UnknownVersionError, ts2str, repair_file
+
+from .read_data import (AudioData, VideoData, UnknownVersionError, ts2str,
+                        repair_file, EvlData, Event)
 from .video_writer import OverWriteError, VideoFile
 from .comp_tstamps import comp_tstamps
