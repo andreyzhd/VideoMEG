@@ -49,7 +49,7 @@ class VideoFile(object):
                 self._file.write(struct.pack('B', 0) if is_sender is None else struct.pack('B', 1))
                 self.ver = ver
             else:
-                raise UnknownVersionError()
+                raise UnknownVersionError("Supported version numbers are: 1,2,3")
 
             self.timestamps = numpy.array([])
             self._frame_ptrs = []
@@ -63,14 +63,18 @@ class VideoFile(object):
         Appends a frame to the end of the file.
         """
         self._file.seek(0, 2)
+
         if self.ver == 1:
             self._file.write(struct.pack('QI', timestamp, len(frame)))
-            self._frame_ptrs.append((self._file.tell(), len(frame)))
-            self._file.write(frame)
-            self._nframes = self._nframes + 1
-            self.timestamps = numpy.append(self.timestamps, timestamp)
+        elif self.ver in [2, 3]:
+            self._file.write(struct.pack('QQI', timestamp, self._nframes, len(frame)))
         else:
-            print "Not implemented"
+            raise UnknownVersionError("Supported version numbers are: 1,2,3")
+
+        self._frame_ptrs.append((self._file.tell(), len(frame)))
+        self._file.write(frame)
+        self._nframes = self._nframes + 1
+        self.timestamps = numpy.append(self.timestamps, timestamp)
 
     def get_frame(self, indx):
         """
