@@ -306,8 +306,7 @@ class VideoData:
         self._file.seek(offset)
         return(self._file.read(sz))
         
-        
-        
+
 class EvlData:
     """
     Reads the Event-list from .evl file.
@@ -352,20 +351,29 @@ class Event:
         self.annotation = annotation
 
     def __str__(self):
-        return "Event start-time: " + self.time + " and duration: " + self.duration    
+        return "Event start-time: " + str(self.time) + " and duration: " + str(self.duration)
     
     def __repr__(self):
         return ("Start-time: " + str(self.time) + "\nClass: " + self._class + 
-            "\nLength: " + str(self.duration) + "\nAnnotation: " + self.annotation)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+                "\nLength: " + str(self.duration) + "\nAnnotation: " + self.annotation)
+
+
+class FifData(object):
+    """
+    Contains some data from .fif file.
+    """
+    def __init__(self, file_name):
+        import mne
+        from pyvideomeg import comp_tstamps
+        raw = mne.io.Raw(fname=file_name, allow_maxshield=True)
+        timing_data = mne.pick_types(raw.info, meg=False, include=['STI 006'])
+        timings = raw[timing_data,:][0].squeeze()
+        self.timestamps = comp_tstamps(timings, raw.info['sfreq'])
+        self.start_time = round(self.timestamps[0])
+
+    def get_timestamps(self):
+        """
+        Get all the timestamps associated.
+        :return: numpy.ndarray of timestamps
+        """
+        return self.timestamps
