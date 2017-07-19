@@ -14,10 +14,18 @@ import io.StringIO
 import pyvideomeg
 from PIL import Image
 from io import BytesIO
-from os import remove, path as op
+from os import remove, walk, path as op
 from math import ceil
 # TODO Should we list all the necessary packages to run all the funcitonality?
 from scipy.io import loadmat
+
+# TODO Check that this check works
+VIDEOMEG_DIR = op.pardir(op.dirname(__file__))
+MATLAB_AMPLIFY_M = op.join(VIDEOMEG_DIR, 'matlab_dependencies', 'amplify.m')
+MATLAB_PHASEAMPMOD_M = op.join(VIDEOMEG_DIR, 'matlab_dependencies', 'phaseAmplifyMod.m')
+
+if not op.exists(MATLAB_AMPLIFY_M) or not op.exists(MATLAB_PHASEAMPMOD_M):
+    raise FileNotFoundError()
 
 
 class OverLappingEvents(Exception):
@@ -34,6 +42,7 @@ class NonMatchingAmplificaton(Exception):
     """
     pass
 
+
 def _rounded_evl_list(event_list):
     """
     Returns list of (start, end) -timestamps that have been ceiled to
@@ -48,18 +57,17 @@ def _rounded_evl_list(event_list):
         listed.append((middle - ceiled_duration / 2, middle + ceiled_duration / 2))
     return listed
 
+
 def phase_based_amplification(video_file, sample_count, frames_per_sample, engine):
     """
-    Calls matlab script with propier parameters, to perform amplification on video_file.
+    Calls matlab script with proper parameters, to perform amplification on video_file.
     Matlab saves the resulting video as matrix to /tmp/vid.mat.
     """
     cycles = 1
-    print("SAMPLES: " + str(sample_count))
-    print("FRAMES: " + str(frames_per_sample))
     print("Invoking amplify.m")
     # TODO Add option for multiple cycles
     # TODO Change amplify.m to handle multiple cycles
-    # TODO Test above functionalities
+    # TODO Test above functionality
     amplified_as_matrix = engine.amplify(video_file, sample_count,
                                          frames_per_sample, cycles, nargout=0)
     return amplified_as_matrix
@@ -79,6 +87,7 @@ if __name__ == "__main__":
         except IOError:
             print(".fif file was not found. Cannot get accurate timing data - exiting.")
             sys.exit()
+
         try:
             EVL = pyvideomeg.read_data.EvlData(op.join(TREE, FNAME + ".evl"))
         except IOError:
@@ -92,13 +101,11 @@ if __name__ == "__main__":
                 raise OverLappingEvents("Events " + str(i-1) + " and " + str(i) + " overlap.\n" +
                                         "Amplification would be ambiguous")
 
-
         ORIGINAL = pyvideomeg.VideoData(VIDEO_FILE)
         AMPLIFIED = pyvideomeg.VideoFile(op.join(TREE, FNAME + ".video.amp.dat"), ORIGINAL.ver,
                                          site_id=ORIGINAL.site_id, is_sender=ORIGINAL.is_sender)
 
         FPS = (len(ORIGINAL.ts)-1) * 1000. / (ORIGINAL.ts[-1] - ORIGINAL.ts[0])
-
 
         # Start Matlab-engine for amplification
         # Won't work if internet connection is not available - matlab cannot check license.
@@ -119,6 +126,7 @@ if __name__ == "__main__":
         while i < len(ORIGINAL.ts):
             FRAME = ORIGINAL.get_frame(i)
             # TODO VIDEO_TIME points to wrong time.
+            # TODO Verify that FIF.start_time provides right time for the amplification
             # Evl marks the time from the start of the fif file, which differs from the time
             # calculated from video timestamps.
             # Evl matching time stamp can be found from .fif file. MNE-python can extract that
@@ -129,8 +137,7 @@ if __name__ == "__main__":
                 AMPLIFIED.append_frame(ORIGINAL.ts[i], FRAME)
                 i = i + 1
             # Amplify event
-            elif (VIDEO_TIME >= EVENT_LIST[EVENT_NUMBER][0] and
-                  VIDEO_TIME <= EVENT_LIST[EVENT_NUMBER][1]):
+            elif EVENT_LIST[EVENT_NUMBER][0] <= VIDEO_TIME <= EVENT_LIST[EVENT_NUMBER][1]:
                 TMP_FLDR = tempfile.mkdtemp()
                 j = i
                 k = 0

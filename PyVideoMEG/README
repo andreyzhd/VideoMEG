@@ -1,0 +1,7 @@
+Motion Amplify requires working installation of matlab engine for python.
+Install instructions can be found here:
+https://se.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html
+
+If using virtualenvironment:
+https://se.mathworks.com/help/matlab/matlab_external/install-matlab-engine-api-for-python-in-nondefault-locations.html
+Where *installdir* should point to virtualenvironment folder.
