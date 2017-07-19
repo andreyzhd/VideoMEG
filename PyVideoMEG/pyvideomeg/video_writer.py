@@ -19,24 +19,26 @@ import struct
 import numpy
 from .read_data import UnknownVersionError
 
+
 class OverWriteError(Exception):
     """
     Thrown if trying to overwrite previous file.
     """
     pass
 
+
 class VideoFile(object):
     """
     .Video.dat file
     """
+
     def __init__(self, file_name, ver, site_id=None, is_sender=None):
         if path.isfile(file_name):
             raise OverWriteError("Won't allow overwriting. File exists on path:\n" +
                                  file_name)
         else:
             self._file = open(file_name, 'wb')
-            self._file.write('ELEKTA_VIDEO_FILE')  # Elekta magic string
-
+            self._file.write(b'ELEKTA_VIDEO_FILE')  # Elekta magic string
 
             if ver == 1 or ver == 2:
                 self._file.write(struct.pack('I', ver))
@@ -90,8 +92,7 @@ class VideoFile(object):
         """
         for i in range(1, len(self.timestamps)):
             if self.timestamps[i - 1] >= self.timestamps[i]:
-                print "Timestamps don't increase expectedly."
+                print("Timestamps don't increase expectedly.")
                 break
         if self._nframes != len(self.timestamps):
-            print "Framecount doesn't match the count of timestamps."
-        
+            print("Framecount doesn't match the count of timestamps.")
