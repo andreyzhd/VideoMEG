@@ -362,6 +362,7 @@ class FifData(object):
     """
     Contains some data from .fif file.
     """
+    # TODO For further development - Use mne.find_events() and amplify those
     def __init__(self, file_name):
         import mne
         from pyvideomeg import comp_tstamps
@@ -369,7 +370,8 @@ class FifData(object):
         timing_data = mne.pick_types(raw.info, meg=False, include=['STI 006'])
         timings = raw[timing_data,:][0].squeeze()
         self.timestamps = comp_tstamps(timings, raw.info['sfreq'])
-        self.start_time = round(self.timestamps[0])
+        self.start_time = self.timestamps[0]
+        self.sampling_freq = raw.info['sfreq']
 
     def get_timestamps(self):
         """
