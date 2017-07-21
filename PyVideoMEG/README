@@ -5,3 +5,7 @@ https://se.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-f
 If using virtualenvironment:
 https://se.mathworks.com/help/matlab/matlab_external/install-matlab-engine-api-for-python-in-nondefault-locations.html
 Where *installdir* should point to virtualenvironment folder.
+
+
+Phase-based amplification contains code from MIT's paper on the subject, see http://people.csail.mit.edu/nwadhwa/phase-video/
+for original paper and code.
