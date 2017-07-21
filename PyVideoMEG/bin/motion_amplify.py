@@ -28,7 +28,7 @@ MATLAB_AMPLIFY_M = op.join(VIDEOMEG_DIR, 'matlab_dependencies', 'amplify.m')
 MATLAB_PHASEAMPMOD_M = op.join(VIDEOMEG_DIR, 'matlab_dependencies', 'phaseAmplifyMod.m')
 
 if not op.exists(MATLAB_AMPLIFY_M) or not op.exists(MATLAB_PHASEAMPMOD_M):
-    raise FileNotFoundError()
+    raise FileNotFoundError("Required Matlab scripts are missing from matlab_dependencies")
 
 
 class OverLappingEvents(Exception):
@@ -94,7 +94,8 @@ if __name__ == "__main__":
         try:
             EVL = pyvideomeg.read_data.EvlData.from_file(op.join(TREE, FNAME + ".evl"))
         except IOError:
-            print(".evl file was not found. Nothing to amplify - exiting.")
+            print(".evl file was not found. Using MNE automatic detection.")
+            EVL = FIF.get_events()
             sys.exit()
         EVENT_LIST = _rounded_evl_list(EVL)
 
