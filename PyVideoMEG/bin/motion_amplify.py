@@ -1,5 +1,22 @@
-#!/usr/bin/env -tt
+#!/usr/bin/env python
+"""
+    Script to amplify motion in Video-MEG recordings. Will produce file [prefix].video.amp.dat.
+    Requires path to .fif file as argument. Other needed files are expected to have same prefix.
 
+    Copyright (C) 2017 BioMag Laboratory, Helsinki University Central Hospital
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, version 3.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 # If Matlab.engine is not imported before numpy, it will crash and inform that installation is corrupted.
 # This is not reported to MathWorks as of yet.
 from __future__ import print_function
@@ -21,6 +38,8 @@ from os import remove, path as op
 from math import ceil
 # TODO Should we list all the necessary packages to run all the funcitonality?
 from scipy.io import loadmat
+
+__author__ = "Janne Holopainen"
 
 # TODO Check that this check works
 VIDEOMEG_DIR = op.dirname(__file__)

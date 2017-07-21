@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-    Copyright (C) 2014 BioMag Laboratory, Helsinki University Central Hospital
+    Class-file for writing .video.dat files compatible with Elekta graph.
+
+    Copyright (C) 2017 BioMag Laboratory, Helsinki University Central Hospital
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,6 +21,7 @@ import struct
 import numpy
 from .read_data import UnknownVersionError
 
+__author__ = "Janne Holopainen"
 
 class OverWriteError(Exception):
     """
