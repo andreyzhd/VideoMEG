@@ -96,7 +96,11 @@ if __name__ == "__main__":
         except IOError:
             print(".evl file was not found. Using MNE automatic detection.")
             EVL = FIF.get_events()
+
+        if len(EVL) == 0:
+            print("No events were found. nothing to amplify - exiting.")
             sys.exit()
+
         EVENT_LIST = _rounded_evl_list(EVL)
 
         # Check for overlaps in events
