@@ -44,7 +44,9 @@ if __name__ == '__main__':
         packages=package_tree('pyvideomeg'),
         package_dir={
             'pyvideomeg': 'pyvideomeg'},
-        package_data={},
+        package_data={'matlab_scripts': ['matlab_scripts/amplify.m',
+                      'matlab_scripts/phaseAmplifyMod.m']},
+        include_package_data=True,
         zip_safe=False,
         classifiers=[
             'Development Status :: 3 - Alpha',

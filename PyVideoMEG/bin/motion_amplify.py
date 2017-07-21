@@ -26,7 +26,7 @@ import tempfile
 import subprocess
 import sys
 import shutil
-# TODO Check compatibility for 2.7. Was changed from StringIO to io.StringIO
+# TODO Verify compatibility for 2.7. Was changed from StringIO to io.StringIO
 try:
     from StringIO import StringIO
 except ImportError:
@@ -36,18 +36,17 @@ from PIL import Image
 from io import BytesIO
 from os import remove, path as op
 from math import ceil
-# TODO Should we list all the necessary packages to run all the funcitonality?
 from scipy.io import loadmat
 
 __author__ = "Janne Holopainen"
 
-# TODO Check that this check works
-VIDEOMEG_DIR = op.dirname(__file__)
-MATLAB_AMPLIFY_M = op.join(VIDEOMEG_DIR, 'matlab_dependencies', 'amplify.m')
-MATLAB_PHASEAMPMOD_M = op.join(VIDEOMEG_DIR, 'matlab_dependencies', 'phaseAmplifyMod.m')
+
+VIDEOMEG_DIR = op.join(op.dirname(__file__), '..', '..', 'pyvideomeg')
+MATLAB_AMPLIFY_M = op.join(VIDEOMEG_DIR, 'matlab_scripts', 'amplify.m')
+MATLAB_PHASEAMPMOD_M = op.join(VIDEOMEG_DIR, 'matlab_scripts', 'phaseAmplifyMod.m')
 
 if not op.exists(MATLAB_AMPLIFY_M) or not op.exists(MATLAB_PHASEAMPMOD_M):
-    raise FileNotFoundError("Required Matlab scripts are missing from matlab_dependencies")
+    raise FileNotFoundError("Required Matlab scripts not found from pyvideomeg/matlab_scripts")
 
 
 class OverLappingEvents(Exception):
