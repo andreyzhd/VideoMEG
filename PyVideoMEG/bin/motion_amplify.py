@@ -87,9 +87,7 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, engin
     """
     cycles = 1
     print("Invoking amplify.m")
-    # TODO Add option for multiple cycles
-    # TODO Change amplify.m to handle multiple cycles
-    # TODO Test above functionality
+    # TODO verify that amplify.m works with cycles as intented
     amplified_as_matrix = engine.amplify(video_file, sample_count,
                                          frames_per_sample, cycles, nargout=0)
     return amplified_as_matrix
@@ -152,7 +150,6 @@ if __name__ == "__main__":
 
         while i < len(ORIGINAL.ts):
             FRAME = ORIGINAL.get_frame(i)
-            # TODO VIDEO_TIME points to wrong time.
             # TODO Verify that FIF.start_time provides right time for the amplification
             # Evl marks the time from the start of the fif file, which differs from the time
             # calculated from video timestamps.
@@ -192,7 +189,7 @@ if __name__ == "__main__":
                 # k was treated as a index before.
                 for indx in range(k):
                     IMG = Image.fromarray(AMPLIFIED_VERSION[:, :, :, indx])
-                    # TODO Can we replace BytesIO() with StringIO for consistency and less
+                    # TODO If possible replace BytesIO() with StringIO for consistency and less
                     # reading from memory.
                     bio = BytesIO()
                     IMG.save(bio, format="JPEG")
