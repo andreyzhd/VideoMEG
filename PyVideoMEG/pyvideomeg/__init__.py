@@ -17,6 +17,6 @@
 """
 
 from .read_data import (AudioData, VideoData, UnknownVersionError, ts2str,
-                        repair_file, EvlData, Event)
+                        repair_file, EvlData, Event, FifData)
 from .video_writer import OverWriteError, VideoFile
 from .comp_tstamps import comp_tstamps

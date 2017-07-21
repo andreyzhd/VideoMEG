@@ -23,7 +23,7 @@ from math import ceil
 from scipy.io import loadmat
 
 # TODO Check that this check works
-VIDEOMEG_DIR = op.pardir(op.dirname(__file__))
+VIDEOMEG_DIR = op.dirname(__file__)
 MATLAB_AMPLIFY_M = op.join(VIDEOMEG_DIR, 'matlab_dependencies', 'amplify.m')
 MATLAB_PHASEAMPMOD_M = op.join(VIDEOMEG_DIR, 'matlab_dependencies', 'phaseAmplifyMod.m')
 
