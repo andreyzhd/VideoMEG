@@ -28,10 +28,10 @@ class UnknownVersionError(Exception):
     pass
 
 def _read_attrib(data_file, ver):
-    '''
+    """
     Read data block attributes. If cannot read the attributes (EOF?), return
     -1 in ts
-    '''
+    """
     if ver == 1:
         attrib = data_file.read(12)
         if len(attrib) == 12:
@@ -309,17 +309,27 @@ class VideoData:
 
 class EvlData:
     """
-    Reads the Event-list from .evl file.
-    To read initialize with filename.
+    Event-list holding Event-class data.
+    Can be read from a .evl file with from_file method
     """
-    def __init__(self, file_name):
+    def __init__(self, source_file, events):
+        self.source_file = source_file
+        self._events = events
+
+    @classmethod
+    def from_file(cls, file_name):
+        """
+        Read an .evl file for event info.
+        :param file_name: File-path to .evl file
+        :return: EvlData-class
+        """
         f = open(file_name, 'r')
         assert f.read(len("(videomeg::")) == "(videomeg::"
-        self.source_file = ""
-        self.events = []
+        source_file = ""
+        events = []
 
         read_events = False
-        # Only except to find souce-file and events
+        # Only except to find source-file and events
         for line in f:
             if read_events:
                 if line[:2] == "))":
@@ -332,11 +342,21 @@ class EvlData:
                     _class = pieced[1].rpartition(':')[2]
                     length = pieced[2].rpartition(' ')[2]
                     annotation = pieced[3].partition(" \"")[2][:-1]
-                    self.events.append(Event(time, _class, length, annotation))
+                    events.append(Event(time, _class, length, annotation))
             elif line.lstrip().startswith(":source-file"):
-                self.source_file = line.partition(" \"")[2][:-1]
+                source_file = line.partition(" \"")[2][:-1]
             elif line.lstrip().startswith(":events"):
                 read_events = True
+        return cls(source_file, events)
+
+    def __len__(self):
+        return len(self._events)
+
+    def get_events(self):
+        """
+        :return: Array of Event-class objects containing a single event
+        """
+        return self._events
 
 
 class Event:
@@ -358,17 +378,24 @@ class Event:
                 "\nLength: " + str(self.duration) + "\nAnnotation: " + self.annotation)
 
 
-class FifData(object):
+class FifData:
     """
     Contains some data from .fif file.
     """
-    # TODO For further development - Use mne.find_events() and amplify those
     def __init__(self, file_name):
         import mne
         from pyvideomeg import comp_tstamps
+
         raw = mne.io.Raw(fname=file_name, allow_maxshield=True)
         timing_data = mne.pick_types(raw.info, meg=False, include=['STI 006'])
-        timings = raw[timing_data,:][0].squeeze()
+        timings = raw[timing_data, :][0].squeeze()
+        self._file_name = file_name
+        # TODO Consider using uint_cast=True to resolve bug with Neuromag acquisition
+        # See https://martinos.org/mne/stable/generated/mne.find_events.html
+        # TODO min_duration needs to be adjusted
+        # Jussi might be the best person for consulting
+        min_duration = 0.02
+        self._events = mne.find_events(raw, output='step', min_duration=min_duration)
         self.timestamps = comp_tstamps(timings, raw.info['sfreq'])
         self.start_time = self.timestamps[0]
         self.sampling_freq = raw.info['sfreq']
@@ -379,3 +406,19 @@ class FifData(object):
         :return: numpy.ndarray of timestamps
         """
         return self.timestamps
+
+    def get_events(self):
+        """
+        Finds events from fif-data according to mne.find_events and returns it
+        by default in evl-event format
+        :return: EvlData-class containing events in EvlData.events
+        """
+        # TODO Untested on actual data
+        events = []
+        for e in self._events:
+            start = self.timestamps[e[1]]
+            duration = self.timestamps[e[1] + e[0]] - start
+            event = Event(start, 'MNE', duration, "MNE event " + str(e[2]))
+            events.append(event)
+        print("Found " + str(len(self._events)) + " events")
+        return EvlData(self._file_name, events)

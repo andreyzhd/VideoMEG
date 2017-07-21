@@ -10,11 +10,14 @@ import subprocess
 import sys
 import shutil
 # TODO Check compatibility for 2.7. Was changed from StringIO to io.StringIO
-import io.StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import pyvideomeg
 from PIL import Image
 from io import BytesIO
-from os import remove, walk, path as op
+from os import remove, path as op
 from math import ceil
 # TODO Should we list all the necessary packages to run all the funcitonality?
 from scipy.io import loadmat
@@ -35,10 +38,10 @@ class OverLappingEvents(Exception):
     pass
 
 
-class NonMatchingAmplificaton(Exception):
+class NonMatchingAmplification(Exception):
     """
     Raised when original and amplified file, don't match according to
-    Elektas variables.
+    Elekta's variables.
     """
     pass
 
@@ -89,7 +92,7 @@ if __name__ == "__main__":
             sys.exit()
 
         try:
-            EVL = pyvideomeg.read_data.EvlData(op.join(TREE, FNAME + ".evl"))
+            EVL = pyvideomeg.read_data.EvlData.from_file(op.join(TREE, FNAME + ".evl"))
         except IOError:
             print(".evl file was not found. Nothing to amplify - exiting.")
             sys.exit()
@@ -111,6 +114,7 @@ if __name__ == "__main__":
         # Won't work if internet connection is not available - matlab cannot check license.
         try:
             _ENG = matlab.engine.start_matlab()
+        # Matlab doesn't specify this exception
         except:
             print("Problem starting Matlab engine. Possible reasons for this include:\n" +
                   " 1 - Is your matlab engine for python installed and accessible?\n" +
@@ -118,7 +122,6 @@ if __name__ == "__main__":
                   "Cannot proceed with amplification. Cleaning up and exiting.")
             remove(op.join(TREE, FNAME + ".video.amp.dat"))
             sys.exit()
-
 
         EVENT_NUMBER = 0
         i = 0
@@ -143,7 +146,7 @@ if __name__ == "__main__":
                 k = 0
                 # Read the whole event and save on temporary folder
                 while (ORIGINAL.ts[j] - ORIGINAL.ts[0])/1000.0 <= EVENT_LIST[EVENT_NUMBER][1]:
-                    IMG = Image.open(io.StringIO(ORIGINAL.get_frame(j)))
+                    IMG = Image.open(StringIO(ORIGINAL.get_frame(j)))
                     IMG.save('%s/%06i.jpg' % (TMP_FLDR, k))
                     j = j + 1
                     k = k + 1
@@ -184,11 +187,11 @@ if __name__ == "__main__":
         _ENG.quit()
 
         if len(ORIGINAL.ts) != len(AMPLIFIED.timestamps):
-            raise NonMatchingAmplificaton("Length of the files differ")
+            raise NonMatchingAmplification("Length of the files differ")
         if ORIGINAL.ver != AMPLIFIED.ver:
-            raise NonMatchingAmplificaton("Files have different versions\nOriginal " +
-                                          str(ORIGINAL.ver) + " Amplified " +
-                                          str(AMPLIFIED.ver))
+            raise NonMatchingAmplification("Files have different versions\nOriginal " +
+                                           str(ORIGINAL.ver) + " Amplified " +
+                                           str(AMPLIFIED.ver))
         AMPLIFIED.check_sanity()
 
     else:
