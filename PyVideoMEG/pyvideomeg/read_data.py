@@ -394,6 +394,7 @@ class FifData:
         # See https://martinos.org/mne/stable/generated/mne.find_events.html
         # TODO min_duration needs to be adjusted
         # Jussi might be the best person for consulting
+        # TODO Add stim_channel attribute
         min_duration = 0.02
         self._events = mne.find_events(raw, output='step', min_duration=min_duration,
                                        uint_cast=True)

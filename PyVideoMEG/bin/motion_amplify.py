@@ -85,8 +85,8 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, engin
     Matlab saves the resulting video as matrix to /tmp/vid.mat.
     """
     cycles = 1
-    print("Invoking amplify.m")
     # TODO verify that amplify.m works with cycles as intented
+    # TODO Taking the scene from both sides of the event might not be the best idea.
     amplified_as_matrix = engine.amplify(video_file, sample_count,
                                          frames_per_sample, cycles, nargout=0)
     return amplified_as_matrix
@@ -161,6 +161,7 @@ if __name__ == "__main__":
                 i = i + 1
             # Amplify event
             elif EVENT_LIST[EVENT_NUMBER][0] <= VIDEO_TIME <= EVENT_LIST[EVENT_NUMBER][1]:
+                print("Amplifying event: %i/%i" % EVENT_NUMBER, len(EVENT_LIST))
                 TMP_FLDR = tempfile.mkdtemp()
                 j = i
                 k = 0
