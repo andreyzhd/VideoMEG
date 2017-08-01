@@ -5,7 +5,8 @@ from pyvideomeg import read_data
 class TestFifReader(unittest.TestCase):
 
     def setUp(self):
-        fname = "/home/mande/Projects/VideoMEG/data/patient_06/file_01.fif"
+        #PATH TO TEST FIF-FILE
+        fname = "/home/janne/antti_data/VideoMEG/showcases/TJ/TJ_spont01R_st_mc.fif"
         self.FifData = read_data.FifData(fname)
 
     def test_load_timestamps_no_maxshield(self):

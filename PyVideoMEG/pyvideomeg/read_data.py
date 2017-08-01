@@ -312,9 +312,14 @@ class EvlData:
     Event-list holding Event-class data.
     Can be read from a .evl file with from_file method
     """
-    def __init__(self, source_file, events):
+    def __init__(self, source_file, events, start, end):
         self.source_file = source_file
         self._events = events
+        self.rec_start = start
+        self.rec_end = end
+
+    def __new__(cls, source_file, events):
+        return cls(source_file, events, 0, 0)
 
     @classmethod
     def from_file(cls, file_name):
@@ -323,31 +328,41 @@ class EvlData:
         :param file_name: File-path to .evl file
         :return: EvlData-class
         """
+        print("Using Evl file: {0}".format(file_name))
         f = open(file_name, 'r')
         assert f.read(len("(videomeg::")) == "(videomeg::"
         source_file = ""
         events = []
 
         read_events = False
+        rec_start = 0
+        rec_end = 0
         # Only except to find source-file and events
         for line in f:
             if read_events:
                 if line[:2] == "))":
                     read_events = False
                 else:
+                    # TODO - Parsing doesn't always work. Testing & more robust write needed.
                     # Expect form ((:time xxx) (:class :"yyy") (:length zzz) (:annotation "www"))
-                    stripped = line.lstrip(" )").rstrip(")")
+                    stripped = line[3:-2]
                     pieced = stripped.split(") (")
                     time = pieced[0].rpartition(' ')[2]
                     _class = pieced[1].rpartition(':')[2]
                     length = pieced[2].rpartition(' ')[2]
-                    annotation = pieced[3].partition(" \"")[2][:-1]
-                    events.append(Event(time, _class, length, annotation))
+                    annotation = pieced[3].partition(" \"")[2][:-2]
+                    if annotation == "REC START":
+                        print("Found REC START")
+                        rec_start = float(time)
+                    elif annotation == "REC END":
+                        rec_end = float(time)
+                    else:
+                        events.append(Event(time, _class, length, annotation))
             elif line.lstrip().startswith(":source-file"):
                 source_file = line.partition(" \"")[2][:-1]
             elif line.lstrip().startswith(":events"):
                 read_events = True
-        return cls(source_file, events)
+        return cls(source_file, events, rec_start, rec_end)
 
     def __len__(self):
         return len(self._events)
@@ -400,6 +415,7 @@ class FifData:
                                        uint_cast=True)
         self.timestamps = comp_tstamps(timings, raw.info['sfreq'])
         self.start_time = self.timestamps[0]
+        self.meas = raw.info['file_id']['usecs'] * 1000
         self.sampling_freq = raw.info['sfreq']
 
     def get_timestamps(self):
@@ -423,4 +439,4 @@ class FifData:
             event = Event(start, 'MNE', duration, "MNE event " + str(e[2]))
             events.append(event)
         print("Found " + str(len(self._events)) + " events")
-        return EvlData(self._file_name, events)
+        return EvlData(self._file_name, events, 0, 0)

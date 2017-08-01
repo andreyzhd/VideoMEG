@@ -37,6 +37,7 @@ class VideoFile(object):
 
     def __init__(self, file_name, ver, site_id=None, is_sender=None):
         if path.isfile(file_name):
+            self._file = None
             raise OverWriteError("Won't allow overwriting. File exists on path:\n" +
                                  file_name)
         else:
@@ -61,7 +62,8 @@ class VideoFile(object):
             self._nframes = 0
 
     def __del__(self):
-        self._file.close()
+        if self._file is not None:
+            self._file.close()
 
     def append_frame(self, timestamp, frame):
         """

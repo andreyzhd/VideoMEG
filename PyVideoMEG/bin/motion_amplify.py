@@ -26,7 +26,7 @@ import tempfile
 import subprocess
 import sys
 import shutil
-# TODO Verify compatibility for 2.7. Was changed from StringIO to io.StringIO
+import getopt
 try:
     from StringIO import StringIO
 except ImportError:
@@ -71,8 +71,9 @@ def _rounded_evl_list(event_list):
     closest 2 second blocks.
     """
     listed = []
+    print("REC START: {0}".format(event_list.rec_start))
     for event in event_list.get_events():
-        middle = event.time + (event.duration / 2)
+        middle = event.time - event_list.rec_start + (event.duration / 2)
         ceiled_duration = float(ceil(event.duration))
         if ceiled_duration % 2 != 0:
             ceiled_duration = ceiled_duration + 1
@@ -97,13 +98,34 @@ if __name__ == "__main__":
     # TODO parse input arguments for:
     # fif, video.dat, evl
 
-    if len(sys.argv) == 2:
-        assert sys.argv[-1] > 4 or sys.argv[-4:] != ".fif"
+    try:
+        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:", ["evl=", "video="])
+        print(OPTS)
+    except getopt.GetoptError:
+        print("Need path to .fif file\nmotion_amplify.py <.fif-file>\n" +
+              "Optionals: --evl and --video")
 
-        FIF = op.split(sys.argv[1])[1]
-        TREE = op.split(sys.argv[1])[0]
+    F_EVL = None
+    F_VID = None
+
+    for o, a in OPTS:
+        if o in ("-e", "--evl"):
+            print("Found option -e, with a: {0}".format(a))
+            F_EVL = a
+        elif o in ("-v", "--video"):
+            F_VID = a
+
+    if len(sys.argv) >= 2:
+        assert ARGS[0][-1] > 4 or ARGS[0][-4:] != ".fif"
+
+        FIF = op.split(ARGS[0])[1]
+        TREE = op.split(ARGS[0])[0]
         FNAME = FIF[:-4]
-        VIDEO_FILE = op.join(TREE, FNAME + ".video.dat")
+
+        if F_VID is not None:
+            VIDEO_FILE = op.expanduser(F_VID)
+        else:
+            VIDEO_FILE = op.join(TREE, FNAME + ".video.dat")
 
         try:
             FIF = pyvideomeg.read_data.FifData(op.join(TREE, FNAME + ".fif"))
@@ -112,7 +134,10 @@ if __name__ == "__main__":
             sys.exit()
 
         try:
-            EVL = pyvideomeg.read_data.EvlData.from_file(op.join(TREE, FNAME + ".evl"))
+            if F_EVL is not None:
+                EVL = pyvideomeg.read_data.EvlData.from_file(op.expanduser(F_EVL))
+            else:
+                EVL = pyvideomeg.read_data.EvlData.from_file(op.join(TREE, FNAME + ".evl"))
         except IOError:
             print(".evl file was not found. Using MNE automatic detection.")
             EVL = FIF.get_events()
@@ -151,6 +176,11 @@ if __name__ == "__main__":
         _ENG.cd(MATLAB_SCRIPTS)
 
         EVENT_NUMBER = 0
+        VIDEO_OFFSET = ORIGINAL.ts[0] - FIF.start_time
+        print("FIF: {0}".format(FIF.start_time))
+        print("MEAS: {0}".format(FIF.meas))
+        print("TS: {0}".format(ORIGINAL.ts[0]))
+        print("Video_offset: {0}".format(VIDEO_OFFSET))
         i = 0
 
         while i < len(ORIGINAL.ts):
@@ -158,16 +188,21 @@ if __name__ == "__main__":
             # TODO Verify that FIF.start_time provides right time for the amplification
             # Evl marks the time from the start of the fif file, which differs from the time
             # calculated from video timestamps.
-            # Evl matching time stamp can be found from .fif file. MNE-python can extract that
+            # Evl matching timestamp can be found from .fif file. MNE-python can extract that
             # information.
-            VIDEO_TIME = (ORIGINAL.ts[i] - FIF.start_time)/1000.0
+            # --- UPDATE ---
+            # fif-file doesn't appear to have a timestamp that would allow us to calculate th time.
+            # Using EVL manual markings with REC START on the start of file instead.
+            VIDEO_TIME = (ORIGINAL.ts[i] - ORIGINAL.ts[0])/1000.0
             # All events handled or first event hasn't started yet
             if EVENT_NUMBER >= len(EVENT_LIST) or VIDEO_TIME < EVENT_LIST[EVENT_NUMBER][0]:
                 AMPLIFIED.append_frame(ORIGINAL.ts[i], FRAME)
                 i = i + 1
             # Amplify event
             elif EVENT_LIST[EVENT_NUMBER][0] <= VIDEO_TIME <= EVENT_LIST[EVENT_NUMBER][1]:
-                print("Amplifying event: %i/%i" % EVENT_NUMBER, len(EVENT_LIST))
+                print("Amplifying event: {0}/{1}".format(EVENT_NUMBER, len(EVENT_LIST)))
+                print("Event start-time: {0}".format(VIDEO_TIME))
+                print("FIF: {0}".format(FIF.start_time))
                 TMP_FLDR = tempfile.mkdtemp()
                 j = i
                 k = 0
@@ -180,7 +215,7 @@ if __name__ == "__main__":
 
                 FFMPEG = subprocess.Popen(["ffmpeg", "-r", str(FPS)+"/1", "-i",
                                            TMP_FLDR+"/%06d.jpg", "-c:v", "mjpeg", "-q:v",
-                                           "0", TMP_FLDR+"/vid.avi"])
+                                           "0", TMP_FLDR+"/vid.avi"], stderr=subprocess.PIPE)
                 FFMPEG.wait()
 
                 SAMPLE_COUNT = round((EVENT_LIST[EVENT_NUMBER][1] -
