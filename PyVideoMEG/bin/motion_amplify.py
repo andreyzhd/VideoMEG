@@ -41,12 +41,13 @@ from scipy.io import loadmat
 __author__ = "Janne Holopainen"
 
 
-VIDEOMEG_DIR = op.join(op.dirname(__file__), '..', '..', 'pyvideomeg')
-MATLAB_AMPLIFY_M = op.join(VIDEOMEG_DIR, 'matlab_scripts', 'amplify.m')
-MATLAB_PHASEAMPMOD_M = op.join(VIDEOMEG_DIR, 'matlab_scripts', 'phaseAmplifyMod.m')
+VIDEOMEG_DIR = op.join(op.dirname(__file__), '..', '..')
+MATLAB_SCRIPTS = op.join(VIDEOMEG_DIR, 'matlab_scripts')
+MATLAB_AMPLIFY_M = op.join(MATLAB_SCRIPTS, 'amplify.m')
+MATLAB_PHASEAMPMOD_M = op.join(MATLAB_SCRIPTS, 'phaseAmplifyMod.m')
 
 if not op.exists(MATLAB_AMPLIFY_M) or not op.exists(MATLAB_PHASEAMPMOD_M):
-    raise FileNotFoundError("Required Matlab scripts not found from pyvideomeg/matlab_scripts")
+    raise IOError("Required Matlab scripts not found from pyvideomeg/matlab_scripts")
 
 
 class OverLappingEvents(Exception):
@@ -70,7 +71,7 @@ def _rounded_evl_list(event_list):
     closest 2 second blocks.
     """
     listed = []
-    for event in event_list.events:
+    for event in event_list.get_events():
         middle = event.time + (event.duration / 2)
         ceiled_duration = float(ceil(event.duration))
         if ceiled_duration % 2 != 0:
@@ -92,6 +93,9 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, engin
     return amplified_as_matrix
 
 if __name__ == "__main__":
+
+    # TODO parse input arguments for:
+    # fif, video.dat, evl
 
     if len(sys.argv) == 2:
         assert sys.argv[-1] > 4 or sys.argv[-4:] != ".fif"
@@ -143,6 +147,8 @@ if __name__ == "__main__":
                   "Cannot proceed with amplification. Cleaning up and exiting.")
             remove(op.join(TREE, FNAME + ".video.amp.dat"))
             sys.exit()
+
+        _ENG.cd(MATLAB_SCRIPTS)
 
         EVENT_NUMBER = 0
         i = 0
