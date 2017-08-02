@@ -32,7 +32,7 @@ try:
 except ImportError:
     from io import StringIO
 import pyvideomeg
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from os import remove, path as op
 from math import ceil
@@ -48,6 +48,10 @@ MATLAB_PHASEAMPMOD_M = op.join(MATLAB_SCRIPTS, 'phaseAmplifyMod.m')
 
 if not op.exists(MATLAB_AMPLIFY_M) or not op.exists(MATLAB_PHASEAMPMOD_M):
     raise IOError("Required Matlab scripts not found from pyvideomeg/matlab_scripts")
+
+FONT_FILE = '/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf'
+FONT_SZ = 20
+FONT = ImageFont.truetype(FONT_FILE, FONT_SZ)
 
 
 class OverLappingEvents(Exception):
@@ -73,15 +77,15 @@ def _rounded_evl_list(event_list):
     listed = []
     print("REC START: {0}".format(event_list.rec_start))
     for event in event_list.get_events():
-        middle = event.time - event_list.rec_start + (event.duration / 2)
-        ceiled_duration = float(ceil(event.duration))
+        middle = event.time - event_list.rec_start + (event.duration / 2.0)
+        ceiled_duration = max(float(ceil(event.duration)), 2.0)
         if ceiled_duration % 2 != 0:
-            ceiled_duration = ceiled_duration + 1
-        listed.append((middle - ceiled_duration / 2, middle + ceiled_duration / 2))
+            ceiled_duration = ceiled_duration + 1.0
+        listed.append((middle - ceiled_duration / 2.0, middle + ceiled_duration / 2.0))
     return listed
 
 
-def phase_based_amplification(video_file, sample_count, frames_per_sample, engine):
+def phase_based_amplification(video_file, sample_count, frames_per_sample, merge_video, engine):
     """
     Calls matlab script with proper parameters, to perform amplification on video_file.
     Matlab saves the resulting video as matrix to /tmp/vid.mat.
@@ -90,7 +94,7 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, engin
     # TODO verify that amplify.m works with cycles as intented
     # TODO Taking the scene from both sides of the event might not be the best idea.
     amplified_as_matrix = engine.amplify(video_file, sample_count,
-                                         frames_per_sample, cycles, nargout=0)
+                                         frames_per_sample, cycles, merge_video, nargout=0)
     return amplified_as_matrix
 
 if __name__ == "__main__":
@@ -99,21 +103,22 @@ if __name__ == "__main__":
     # fif, video.dat, evl
 
     try:
-        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:", ["evl=", "video="])
-        print(OPTS)
+        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:m", ["evl=", "video=, merge"])
     except getopt.GetoptError:
         print("Need path to .fif file\nmotion_amplify.py <.fif-file>\n" +
               "Optionals: --evl and --video")
 
     F_EVL = None
     F_VID = None
+    MERGE_VIDEO = False
 
     for o, a in OPTS:
         if o in ("-e", "--evl"):
-            print("Found option -e, with a: {0}".format(a))
             F_EVL = a
         elif o in ("-v", "--video"):
             F_VID = a
+        elif o in ("-m", "--merge"):
+            MERGE_VIDEO = True
 
     if len(sys.argv) >= 2:
         assert ARGS[0][-1] > 4 or ARGS[0][-4:] != ".fif"
@@ -148,6 +153,9 @@ if __name__ == "__main__":
 
         EVENT_LIST = _rounded_evl_list(EVL)
 
+        for e in EVENT_LIST:
+            print(str(e[0]) + "   " + str(e[1]))
+
         # Check for overlaps in events
         for i in range(1, len(EVENT_LIST)):
             if EVENT_LIST[i][0] < EVENT_LIST[i-1][1]:
@@ -177,10 +185,6 @@ if __name__ == "__main__":
 
         EVENT_NUMBER = 0
         VIDEO_OFFSET = ORIGINAL.ts[0] - FIF.start_time
-        print("FIF: {0}".format(FIF.start_time))
-        print("MEAS: {0}".format(FIF.meas))
-        print("TS: {0}".format(ORIGINAL.ts[0]))
-        print("Video_offset: {0}".format(VIDEO_OFFSET))
         i = 0
 
         while i < len(ORIGINAL.ts):
@@ -200,9 +204,6 @@ if __name__ == "__main__":
                 i = i + 1
             # Amplify event
             elif EVENT_LIST[EVENT_NUMBER][0] <= VIDEO_TIME <= EVENT_LIST[EVENT_NUMBER][1]:
-                print("Amplifying event: {0}/{1}".format(EVENT_NUMBER, len(EVENT_LIST)))
-                print("Event start-time: {0}".format(VIDEO_TIME))
-                print("FIF: {0}".format(FIF.start_time))
                 TMP_FLDR = tempfile.mkdtemp()
                 j = i
                 k = 0
@@ -222,7 +223,7 @@ if __name__ == "__main__":
                                       EVENT_LIST[EVENT_NUMBER][0]) / 2.)
                 FRAME_PER_SAMPLE = round(float(k) / SAMPLE_COUNT)
                 phase_based_amplification(op.join(TMP_FLDR, "vid.avi"), SAMPLE_COUNT,
-                                          FRAME_PER_SAMPLE, _ENG)
+                                          FRAME_PER_SAMPLE, MERGE_VIDEO, _ENG)
                 _ENG.clear('all', nargout=0)
                 AMPLIFIED_VERSION = loadmat("/tmp/vid.mat")['out']
 
@@ -230,6 +231,9 @@ if __name__ == "__main__":
                 # k was treated as a index before.
                 for indx in range(k):
                     IMG = Image.fromarray(AMPLIFIED_VERSION[:, :, :, indx])
+                    if not MERGE_VIDEO:
+                        draw = ImageDraw.Draw(IMG)
+                        draw.text((280, 5), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
                     # TODO If possible replace BytesIO() with StringIO for consistency and less
                     # reading from memory.
                     bio = BytesIO()
@@ -249,7 +253,10 @@ if __name__ == "__main__":
         _ENG.quit()
 
         if len(ORIGINAL.ts) != len(AMPLIFIED.timestamps):
-            raise NonMatchingAmplification("Length of the files differ")
+            print(i)
+            print(str(len(ORIGINAL.ts)) + "    " + str(len(AMPLIFIED.timestamps)))
+            raise NonMatchingAmplification("Length of the original and amplified video-files" +
+                                           " differ")
         if ORIGINAL.ver != AMPLIFIED.ver:
             raise NonMatchingAmplification("Files have different versions\nOriginal " +
                                            str(ORIGINAL.ver) + " Amplified " +
@@ -257,4 +264,4 @@ if __name__ == "__main__":
         AMPLIFIED.check_sanity()
 
     else:
-        print("Need path to .fif file\nmotion_amplify.py <.fif-file>")
+        print("Need path to .fif file\nmotion_amplify.py <options> <.fif-file>")

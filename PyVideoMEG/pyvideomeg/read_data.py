@@ -352,7 +352,6 @@ class EvlData:
                     length = pieced[2].rpartition(' ')[2]
                     annotation = pieced[3].partition(" \"")[2][:-2]
                     if annotation == "REC START":
-                        print("Found REC START")
                         rec_start = float(time)
                     elif annotation == "REC END":
                         rec_end = float(time)
@@ -401,7 +400,7 @@ class FifData:
         import mne
         from pyvideomeg import comp_tstamps
 
-        raw = mne.io.Raw(fname=file_name, allow_maxshield=True)
+        raw = mne.io.read_raw_fif(fname=file_name, allow_maxshield=True)
         timing_data = mne.pick_types(raw.info, meg=False, include=['STI 006'])
         timings = raw[timing_data, :][0].squeeze()
         self._file_name = file_name
@@ -411,11 +410,10 @@ class FifData:
         # Jussi might be the best person for consulting
         # TODO Add stim_channel attribute
         min_duration = 0.02
-        self._events = mne.find_events(raw, output='step', min_duration=min_duration,
-                                       uint_cast=True)
+        #self._events = mne.find_events(raw, output='step', min_duration=min_duration,
+        #                               uint_cast=True)
         self.timestamps = comp_tstamps(timings, raw.info['sfreq'])
         self.start_time = self.timestamps[0]
-        self.meas = raw.info['file_id']['usecs'] * 1000
         self.sampling_freq = raw.info['sfreq']
 
     def get_timestamps(self):

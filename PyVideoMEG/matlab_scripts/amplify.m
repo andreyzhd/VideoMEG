@@ -1,4 +1,4 @@
-function amplify(vidFile, sampleCount, framePerSample, cycles)
+function amplify(vidFile, sampleCount, framePerSample, cycles, videoMerge)
 
 PhaseBasedAmpDir = '/home/janne/PhaseBasedAmp';
 
@@ -59,12 +59,16 @@ for s = 1:nSample
     % Resize to allow amplified and original to be side-by-side.
     % Keep aspect ratio.
     % Since Elekta Graph expects 640,480 video use those values
-    for f = 1:frPerSample
-        % Uses bicubic interpolation
-        resOrig = imresize(samples(:,:,:,f), [240, 320]);
-        resAmp = imresize(amp(:,:,:,f), [240, 320]);
-        out(121:360,1:320,:,(s-1)*frPerSample+f) = resOrig;
-        out(121:360,321:640,:,(s-1)*frPerSample+f) = resAmp;
+    if (videoMerge)
+        for f = 1:frPerSample
+            % Uses bicubic interpolation
+            resOrig = imresize(samples(:,:,:,f), [240, 320]);
+            resAmp = imresize(amp(:,:,:,f), [240, 320]);
+            out(121:360,1:320,:,(s-1)*frPerSample+f) = resOrig;
+            out(121:360,321:640,:,(s-1)*frPerSample+f) = resAmp;
+        end
+    else
+        out = amp;
     end
 end
 
