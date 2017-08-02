@@ -106,7 +106,7 @@ if __name__ == "__main__":
         OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:m", ["evl=", "video=, merge"])
     except getopt.GetoptError:
         print("Need path to .fif file\nmotion_amplify.py <.fif-file>\n" +
-              "Optionals: --evl and --video")
+              "Optionals: --evl, --video and --merge")
 
     F_EVL = None
     F_VID = None

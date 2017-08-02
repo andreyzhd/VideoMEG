@@ -20,28 +20,27 @@ vr = VideoReader(vidFile);
 fr = vr.FrameRate;
 original = vr.read();
 
-%fr = fps;
-disp('Loading Matrix');
-%original = reshape(vidMatrix, 480,640,3, frameCount);
-%original = load('/tmp/vid.mat');
 [h, w, nChannel, nFrame] = size(original);
-[h,w,nFrame];
 
 frPerSample = framePerSample;
 nSample = sampleCount;
+overflow = 0;
 
 % TODO calculate overflow frames and add them to end
-disp('Slicing video');
+while (mod(frPerSample, nSample) ~= 0)
+    frPerSample = frPerSample - 1;
+    overflow = overflow + 1;
+end
 
 samples = zeros(h, w, nChannel, frPerSample, nSample, 'uint8');
 reverse = zeros(h, w, nChannel, frPerSample, nSample,'uint8');
 stich = zeros(h, w, nChannel, frPerSample*2, nSample*cycles,'uint8');
-out = zeros(h, w, nChannel, nSample*frPerSample, 'uint8');
+out = zeros(h, w, nChannel, nFrame, 'uint8');
 
 for s = 1:nSample
     for f = 1:frPerSample
         samples(:,:,:,f,s) = original(:,:,:,((s-1)*frPerSample)+f);
-        reverse(:,:,:,f,s) = original(:,:,:,(s*(frPerSample+1))-f);
+        reverse(:,:,:,f,s) = original(:,:,:,(s*frPerSample)+1-f);
     end
     stich(:,:,:,1:frPerSample,s) = samples(:,:,:,:,s);
     stich(:,:,:,frPerSample+1:2*frPerSample,s) = reverse(:,:,:,:,s);
@@ -71,6 +70,8 @@ for s = 1:nSample
         out = amp;
     end
 end
+
+out(:,:,:,nFrame - overflow:nFrame) = original(:,:,:,nFrame - overflow:nFrame);
 
 out = im2uint8(out);
 save('/tmp/vid.mat' , 'out');
