@@ -386,9 +386,9 @@ class Event:
 
     def __str__(self):
         return "Event start-time: " + str(self.time) + " and duration: " + str(self.duration)
-    
+
     def __repr__(self):
-        return ("Start-time: " + str(self.time) + "\nClass: " + self._class + 
+        return ("Start-time: " + str(self.time) + "\nClass: " + self._class +
                 "\nLength: " + str(self.duration) + "\nAnnotation: " + self.annotation)
 
 
@@ -396,12 +396,12 @@ class FifData:
     """
     Contains some data from .fif file.
     """
-    def __init__(self, file_name):
+    def __init__(self, file_name, ch):
         import mne
         from pyvideomeg import comp_tstamps
 
         raw = mne.io.read_raw_fif(fname=file_name, allow_maxshield=True)
-        timing_data = mne.pick_types(raw.info, meg=False, include=['STI 006'])
+        timing_data = mne.pick_types(raw.info, meg=False, include=[ch])
         timings = raw[timing_data, :][0].squeeze()
         self._file_name = file_name
         # Using uint_cast=True to resolve bug with Neuromag acquisition
@@ -410,8 +410,8 @@ class FifData:
         # Jussi might be the best person for consulting
         # TODO Add stim_channel attribute
         min_duration = 0.02
-        #self._events = mne.find_events(raw, output='step', min_duration=min_duration,
-        #                               uint_cast=True)
+        self._events = mne.find_events(raw, output='step', min_duration=min_duration,
+                                       uint_cast=True)
         self.timestamps = comp_tstamps(timings, raw.info['sfreq'])
         self.start_time = self.timestamps[0]
         self.sampling_freq = raw.info['sfreq']

@@ -103,14 +103,15 @@ if __name__ == "__main__":
     # fif, video.dat, evl
 
     try:
-        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:m", ["evl=", "video=, merge"])
+        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:", ["evl=", "video=", "merge", "timing="])
     except getopt.GetoptError:
         print("Need path to .fif file\nmotion_amplify.py <.fif-file>\n" +
-              "Optionals: --evl, --video and --merge")
+              "Optionals: --evl, --video, --merge, --timing")
 
     F_EVL = None
     F_VID = None
     MERGE_VIDEO = False
+    TIMING_CH = "STI 006"
 
     for o, a in OPTS:
         if o in ("-e", "--evl"):
@@ -119,6 +120,8 @@ if __name__ == "__main__":
             F_VID = a
         elif o in ("-m", "--merge"):
             MERGE_VIDEO = True
+        elif o in ("-t", "--timing"):
+            TIMING_CH = a
 
     if len(sys.argv) >= 2:
         assert ARGS[0][-1] > 4 or ARGS[0][-4:] != ".fif"
@@ -133,7 +136,7 @@ if __name__ == "__main__":
             VIDEO_FILE = op.join(TREE, FNAME + ".video.dat")
 
         try:
-            FIF = pyvideomeg.read_data.FifData(op.join(TREE, FNAME + ".fif"))
+            FIF = pyvideomeg.read_data.FifData(op.join(TREE, FNAME + ".fif"), TIMING_CH)
         except IOError:
             print(".fif file was not found. Cannot get accurate timing data - exiting.")
             sys.exit()
