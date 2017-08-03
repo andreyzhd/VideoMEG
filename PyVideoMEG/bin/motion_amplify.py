@@ -91,16 +91,12 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     Matlab saves the resulting video as matrix to /tmp/vid.mat.
     """
     cycles = 1
-    # TODO verify that amplify.m works with cycles as intented
     # TODO Taking the scene from both sides of the event might not be the best idea.
     amplified_as_matrix = engine.amplify(video_file, sample_count,
                                          frames_per_sample, cycles, merge_video, nargout=0)
     return amplified_as_matrix
 
 if __name__ == "__main__":
-
-    # TODO parse input arguments for:
-    # fif, video.dat, evl
 
     try:
         OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:", ["evl=", "video=", "merge", "timing="])
@@ -192,12 +188,7 @@ if __name__ == "__main__":
 
         while i < len(ORIGINAL.ts):
             FRAME = ORIGINAL.get_frame(i)
-            # TODO Verify that FIF.start_time provides right time for the amplification
-            # Evl marks the time from the start of the fif file, which differs from the time
-            # calculated from video timestamps.
-            # Evl matching timestamp can be found from .fif file. MNE-python can extract that
-            # information.
-            # --- UPDATE ---
+            # TODO Automatically calculate the EVL-video offset.
             # fif-file doesn't appear to have a timestamp that would allow us to calculate th time.
             # Using EVL manual markings with REC START on the start of file instead.
             VIDEO_TIME = (ORIGINAL.ts[i] - ORIGINAL.ts[0])/1000.0
@@ -237,8 +228,6 @@ if __name__ == "__main__":
                     if not MERGE_VIDEO:
                         draw = ImageDraw.Draw(IMG)
                         draw.text((280, 5), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
-                    # TODO If possible replace BytesIO() with StringIO for consistency and less
-                    # reading from memory.
                     bio = BytesIO()
                     IMG.save(bio, format="JPEG")
                     bio.seek(0)

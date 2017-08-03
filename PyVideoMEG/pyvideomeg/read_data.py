@@ -400,7 +400,7 @@ class FifData:
         import mne
         from pyvideomeg import comp_tstamps
 
-        raw = mne.io.read_raw_fif(fname=file_name, allow_maxshield=True)
+        raw = mne.io.read_raw_fif(fname=file_name, allow_maxshield=True, verbose=50)
         timing_data = mne.pick_types(raw.info, meg=False, include=[ch])
         timings = raw[timing_data, :][0].squeeze()
         self._file_name = file_name
@@ -408,10 +408,9 @@ class FifData:
         # See https://martinos.org/mne/stable/generated/mne.find_events.html
         # TODO min_duration needs to be adjusted
         # Jussi might be the best person for consulting
-        # TODO Add stim_channel attribute
         min_duration = 0.02
         self._events = mne.find_events(raw, output='step', min_duration=min_duration,
-                                       uint_cast=True)
+                                       uint_cast=True, verbose=50)
         self.timestamps = comp_tstamps(timings, raw.info['sfreq'])
         self.start_time = self.timestamps[0]
         self.sampling_freq = raw.info['sfreq']
