@@ -152,9 +152,6 @@ if __name__ == "__main__":
 
         EVENT_LIST = _rounded_evl_list(EVL)
 
-        for e in EVENT_LIST:
-            print(str(e[0]) + "   " + str(e[1]))
-
         # Check for overlaps in events
         for i in range(1, len(EVENT_LIST)):
             if EVENT_LIST[i][0] < EVENT_LIST[i-1][1]:
@@ -194,7 +191,17 @@ if __name__ == "__main__":
             VIDEO_TIME = (ORIGINAL.ts[i] - ORIGINAL.ts[0])/1000.0
             # All events handled or first event hasn't started yet
             if EVENT_NUMBER >= len(EVENT_LIST) or VIDEO_TIME < EVENT_LIST[EVENT_NUMBER][0]:
-                AMPLIFIED.append_frame(ORIGINAL.ts[i], FRAME)
+                # TODO Untested
+                if MERGE_VIDEO is not None:
+                    IMG = Image.new("RGB", (480, 640))
+                    ORI = Image.open(StringIO(ORIGINAL.get_frame(i)))
+                    IMG.paste(ORI, (121,0))
+                    bio = BytesIO()
+                    IMG.save(bio, format="JPEG")
+                    bio.seek(0)
+                    AMPLIFIED.append_frame(ORIGINAL.ts[i], bio.read(-1))
+                else:
+                    AMPLIFIED.append_frame(ORIGINAL.ts[i], FRAME)
                 i = i + 1
             # Amplify event
             elif EVENT_LIST[EVENT_NUMBER][0] <= VIDEO_TIME <= EVENT_LIST[EVENT_NUMBER][1]:
