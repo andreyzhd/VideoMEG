@@ -1,4 +1,4 @@
-function amplify(vidFile, sampleCount, framePerSample, cycles, videoMerge)
+function amplify(vidFile, sampleCount, framePerSample, cycles, pyramid, videoMerge)
 
 PhaseBasedAmpDir = '/home/janne/PhaseBasedAmp';
 
@@ -53,7 +53,7 @@ for s = 1:nSample
 
     % attenuateOtherFreq default is FALSE
     % sigma default is 0
-    amp = phaseAmplifyMod(stich(:,:,:,:,s), fr , 10, 0.3, 1.3, 50, '', 'sigma', 0, 'attenuateOtherFreq', false, 'temporalFilter', @FIRWindowBP, 'pyrType', 'octave');
+    amp = phaseAmplifyMod(stich(:,:,:,:,s), 10, 0.3, 1.3, 2*fr+5, '', 'sigma', 0, 'attenuateOtherFreq', false, 'temporalFilter', @FIRWindowBP, 'pyrType', pyramid);
 
     % Resize to allow amplified and original to be side-by-side.
     % Keep aspect ratio.
@@ -70,8 +70,11 @@ for s = 1:nSample
         out = amp;
     end
 end
-
-out(:,:,:,nFrame - overflow:nFrame) = original(:,:,:,nFrame - overflow:nFrame);
-
+if (videoMerge)
+    resOrig = imresize(original(:,:,:,nFrame - overflow:nFrame), [240, 320]);
+    out(121:360,1:320,:,nFrame - overflow:nFrame) = resOrig;
+else
+    out(:,:,:,nFrame - overflow:nFrame) = original(:,:,:,nFrame - overflow:nFrame);
+end
 out = im2uint8(out);
 save('/tmp/vid.mat' , 'out');

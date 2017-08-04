@@ -1,5 +1,5 @@
 %% Original code is written by MIT. See original code and publication: http://people.csail.mit.edu/nwadhwa/phase-video/
-function res = phaseAmplify(vidFile, FrameRate, magPhase , fl, fh,fs, outDir, varargin)
+function res = phaseAmplify(vidFile, magPhase , fl, fh,fs, outDir, varargin)
 
     vid(:,:,:,:) = vidFile(:,:,:,:);
 
@@ -166,5 +166,4 @@ function res = phaseAmplify(vidFile, FrameRate, magPhase , fl, fh,fs, outDir, va
         %% Put frame in output
         res(:,:,:,k) = im2uint8(outFrame);
     end
-    %writeVideo(res, FrameRate, '~/phaseAmp_res.avi', 100, 'Motion JPEG AVI');
 end

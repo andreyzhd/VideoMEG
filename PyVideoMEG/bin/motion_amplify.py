@@ -92,8 +92,12 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     """
     cycles = 1
     # TODO Taking the scene from both sides of the event might not be the best idea.
+    
+    # Pyramid can be: 'octave', 'halfOctave', 'smoothHalfOctave', 'quarterOctave'
+    pyramid = 'halfOctave'
+
     amplified_as_matrix = engine.amplify(video_file, sample_count,
-                                         frames_per_sample, cycles, merge_video, nargout=0)
+                                         frames_per_sample, cycles, pyramid, merge_video, nargout=0)
     return amplified_as_matrix
 
 if __name__ == "__main__":
@@ -153,6 +157,7 @@ if __name__ == "__main__":
         EVENT_LIST = _rounded_evl_list(EVL)
 
         # Check for overlaps in events
+        # TODO Treat overlapping events as single event?
         for i in range(1, len(EVENT_LIST)):
             if EVENT_LIST[i][0] < EVENT_LIST[i-1][1]:
                 raise OverLappingEvents("Events " + str(i-1) + " and " + str(i) + " overlap.\n" +
@@ -191,11 +196,16 @@ if __name__ == "__main__":
             VIDEO_TIME = (ORIGINAL.ts[i] - ORIGINAL.ts[0])/1000.0
             # All events handled or first event hasn't started yet
             if EVENT_NUMBER >= len(EVENT_LIST) or VIDEO_TIME < EVENT_LIST[EVENT_NUMBER][0]:
-                # TODO Untested
                 if MERGE_VIDEO is not None:
-                    IMG = Image.new("RGB", (480, 640))
+                    # Resize original video and paste it to the left part of the new video.
+
+                    IMG = Image.new("RGB", (640, 480))
                     ORI = Image.open(StringIO(ORIGINAL.get_frame(i)))
-                    IMG.paste(ORI, (121,0))
+                    ORI = ORI.resize((320, 240), Image.BICUBIC)
+                    draw = ImageDraw.Draw(IMG)
+                    draw.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
+                    draw.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+                    IMG.paste(ORI, (0,120))
                     bio = BytesIO()
                     IMG.save(bio, format="JPEG")
                     bio.seek(0)
@@ -232,9 +242,13 @@ if __name__ == "__main__":
                 # k was treated as a index before.
                 for indx in range(k):
                     IMG = Image.fromarray(AMPLIFIED_VERSION[:, :, :, indx])
-                    if not MERGE_VIDEO:
+                    if MERGE_VIDEO is None:
                         draw = ImageDraw.Draw(IMG)
                         draw.text((280, 5), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+                    else:
+                        draw = ImageDraw.Draw(IMG)
+                        draw.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
+                        draw.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
                     bio = BytesIO()
                     IMG.save(bio, format="JPEG")
                     bio.seek(0)
@@ -245,7 +259,7 @@ if __name__ == "__main__":
 
                 i = i + k
                 EVENT_NUMBER = EVENT_NUMBER + 1
-            # Skip if nothing for some reason event none of the above applies
+            # Skip, if for some reason none of the above applies
             else:
                 i = i + 1
 
