@@ -1,4 +1,4 @@
-function amplify(vidFile, sampleCount, framePerSample, cycles, pyramid, videoMerge)
+function amplify(vidFile, sampleCount, framePerSample, cycles, pyramid, low, high, amp, videoMerge)
 
 PhaseBasedAmpDir = '/home/janne/PhaseBasedAmp';
 
@@ -53,7 +53,7 @@ for s = 1:nSample
 
     % attenuateOtherFreq default is FALSE
     % sigma default is 0
-    amp = phaseAmplifyMod(stich(:,:,:,:,s), 10, 0.3, 1.3, 2*fr+5, '', 'sigma', 0, 'attenuateOtherFreq', false, 'temporalFilter', @FIRWindowBP, 'pyrType', pyramid);
+    amp = phaseAmplifyMod(stich(:,:,:,:,s), amp, low, high, fr, '', 'sigma', 0, 'attenuateOtherFreq', false, 'temporalFilter', @FIRWindowBP, 'pyrType', pyramid);
 
     % Resize to allow amplified and original to be side-by-side.
     % Keep aspect ratio.

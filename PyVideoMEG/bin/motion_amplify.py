@@ -43,6 +43,8 @@ __author__ = "Janne Holopainen"
 
 # TODO QOL Format print-statements to use .format
 # TODO QOL Add display to show progress of amplification
+# TODO QOL Add Logging
+# TODO Write more comprehensive help
 
 VIDEOMEG_DIR = op.join(op.dirname(__file__), '..', '..')
 MATLAB_SCRIPTS = op.join(VIDEOMEG_DIR, 'matlab_scripts')
@@ -88,7 +90,8 @@ def _rounded_evl_list(event_list):
     return listed
 
 
-def phase_based_amplification(video_file, sample_count, frames_per_sample, merge_video, engine):
+def phase_based_amplification(video_file, sample_count, frames_per_sample, merge_video, low_cut,
+                              high_cut, amp, engine):
     """
     Calls matlab script with proper parameters, to perform amplification on video_file.
     Matlab saves the resulting video as matrix to /tmp/vid.mat.
@@ -102,14 +105,16 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     # Pyramid can be: 'octave', 'halfOctave', 'smoothHalfOctave', 'quarterOctave'
     pyramid = 'halfOctave'
 
-    amplified_as_matrix = engine.amplify(video_file, sample_count,
-                                         frames_per_sample, cycles, pyramid, merge_video, nargout=0)
+    amplified_as_matrix = engine.amplify(video_file, sample_count, frames_per_sample,
+                                         cycles, pyramid, low_cut, high_cut, merge_video,
+                                         amp, nargout=0)
     return amplified_as_matrix
 
 if __name__ == "__main__":
 
     try:
-        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:", ["evl=", "video=", "merge", "timing="])
+        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:l:h:a:", ["evl=", "video=", "merge",
+                                                                   "timing=", "low=", "high="])
     except getopt.GetoptError:
         print("Need path to .fif file\nmotion_amplify.py <.fif-file>\n" +
               "Optionals: --evl, --video, --merge, --timing")
@@ -118,6 +123,9 @@ if __name__ == "__main__":
     F_VID = None
     MERGE_VIDEO = False
     TIMING_CH = "STI 006"
+    LOW = 0.3
+    HIGH = 1.3
+    AMPLIFICATION_FACTOR = 10.0
 
     for o, a in OPTS:
         if o in ("-e", "--evl"):
@@ -128,6 +136,23 @@ if __name__ == "__main__":
             MERGE_VIDEO = True
         elif o in ("-t", "--timing"):
             TIMING_CH = a
+        elif o in ("-l", "--low"):
+            try:
+                LOW = float(a)
+            except ValueError:
+                print("Cannot convert value from {0} to float. Using 0.3".format(o))
+        elif o in ("-h", "--high"):
+            try:
+                HIGH = float(a)
+            except ValueError:
+                print("Cannot convert value from {0} to float. Using 1.3".format(o))
+        elif o == "-a":
+            try:
+                AMPLIFICATION_FACTOR = float(a)
+            except ValueError:
+                print("Cannot convert value from {0} to float. Using 10.0 as amplification factor"
+                      .format(o))
+
 
     if len(sys.argv) >= 2:
         assert ARGS[0][-1] > 4 or ARGS[0][-4:] != ".fif"
@@ -242,7 +267,8 @@ if __name__ == "__main__":
                                       EVENT_LIST[EVENT_NUMBER][0]) / 2.)
                 FRAME_PER_SAMPLE = round(float(k) / SAMPLE_COUNT)
                 phase_based_amplification(op.join(TMP_FLDR, "vid.avi"), SAMPLE_COUNT,
-                                          FRAME_PER_SAMPLE, MERGE_VIDEO, _ENG)
+                                          FRAME_PER_SAMPLE, MERGE_VIDEO, LOW, HIGH,
+                                          AMPLIFICATION_FACTOR, _ENG)
                 _ENG.clear('all', nargout=0)
                 AMPLIFIED_VERSION = loadmat("/tmp/vid.mat")['out']
 
