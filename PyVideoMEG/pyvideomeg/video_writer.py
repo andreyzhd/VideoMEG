@@ -16,12 +16,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+from __future__ import print_function
+
 from os import path
 import struct
 import numpy
 from .read_data import UnknownVersionError
 
 __author__ = "Janne Holopainen"
+
+# TODO Rename video-writer to data_writer & Add EVL-writing.
+# TODO Write used amplification parameters to the evl-file.
 
 class OverWriteError(Exception):
     """

@@ -3,7 +3,7 @@
     Script to amplify motion in Video-MEG recordings. Will produce file [prefix].video.amp.dat.
     Requires path to .fif file as argument. Other needed files are expected to have same prefix.
 
-    Copyright (C) 2017 BioMag Laboratory, Helsinki University Central Hospital
+    Copyright (C) 2017 BIOMag Laboratory, Helsinki University Central Hospital
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,7 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-# If Matlab.engine is not imported before numpy, it will crash and inform that installation is corrupted.
+# If Matlab.engine is not imported before numpy, it will crash and inform that
+# installation is corrupted.
 # This is not reported to MathWorks as of yet.
 from __future__ import print_function
 
@@ -40,6 +41,8 @@ from scipy.io import loadmat
 
 __author__ = "Janne Holopainen"
 
+# TODO QOL Format print-statements to use .format
+# TODO QOL Add display to show progress of amplification
 
 VIDEOMEG_DIR = op.join(op.dirname(__file__), '..', '..')
 MATLAB_SCRIPTS = op.join(VIDEOMEG_DIR, 'matlab_scripts')
@@ -54,14 +57,14 @@ FONT_SZ = 20
 FONT = ImageFont.truetype(FONT_FILE, FONT_SZ)
 
 
-class OverLappingEvents(Exception):
+class OverLappingEventsError(Exception):
     """
     Raised when overlapping events would produce ambiguous amplification.
     """
     pass
 
 
-class NonMatchingAmplification(Exception):
+class NonMatchingAmplificationError(Exception):
     """
     Raised when original and amplified file, don't match according to
     Elekta's variables.
@@ -92,7 +95,10 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     """
     cycles = 1
     # TODO Taking the scene from both sides of the event might not be the best idea.
-    
+    # TODO Open the parameters to the CLI.
+    # TODO Should we drop the cyclic manipulation before the amplification?
+    # TODO Can we exclude normal breathing from amplification?
+
     # Pyramid can be: 'octave', 'halfOctave', 'smoothHalfOctave', 'quarterOctave'
     pyramid = 'halfOctave'
 
@@ -150,7 +156,7 @@ if __name__ == "__main__":
             print(".evl file was not found. Using MNE automatic detection.")
             EVL = FIF.get_events()
 
-        if len(EVL) == 0:
+        if not EVL.get_events():
             print("No events were found. nothing to amplify - exiting.")
             sys.exit()
 
@@ -158,10 +164,11 @@ if __name__ == "__main__":
 
         # Check for overlaps in events
         # TODO Treat overlapping events as single event?
+        # TODO Should the length be adjusted by the expeced frequency?
         for i in range(1, len(EVENT_LIST)):
             if EVENT_LIST[i][0] < EVENT_LIST[i-1][1]:
-                raise OverLappingEvents("Events " + str(i-1) + " and " + str(i) + " overlap.\n" +
-                                        "Amplification would be ambiguous")
+                raise OverLappingEventsError("Events " + str(i-1) + " and " + str(i) +
+                                             " overlap.\n" + "Amplification would be ambiguous")
 
         ORIGINAL = pyvideomeg.VideoData(VIDEO_FILE)
         AMPLIFIED = pyvideomeg.VideoFile(op.join(TREE, FNAME + ".video.amp.dat"), ORIGINAL.ver,
@@ -174,7 +181,7 @@ if __name__ == "__main__":
         try:
             _ENG = matlab.engine.start_matlab()
         # Matlab doesn't specify this exception
-        except:
+        except Exception:
             print("Problem starting Matlab engine. Possible reasons for this include:\n" +
                   " 1 - Is your matlab engine for python installed and accessible?\n" +
                   " 2 - Do you have internet connection, to check your matlab license?\n\n" +
@@ -202,14 +209,15 @@ if __name__ == "__main__":
                     IMG = Image.new("RGB", (640, 480))
                     ORI = Image.open(StringIO(ORIGINAL.get_frame(i)))
                     ORI = ORI.resize((320, 240), Image.BICUBIC)
-                    draw = ImageDraw.Draw(IMG)
-                    draw.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
-                    draw.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
-                    IMG.paste(ORI, (0,120))
-                    bio = BytesIO()
-                    IMG.save(bio, format="JPEG")
-                    bio.seek(0)
-                    AMPLIFIED.append_frame(ORIGINAL.ts[i], bio.read(-1))
+                    DRAW = ImageDraw.Draw(IMG)
+                    DRAW.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
+                    DRAW.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+                    IMG.paste(ORI, (0, 120))
+                    BIO = BytesIO()
+                    IMG.save(BIO, format="JPEG")
+                    BIO.seek(0)
+                    AMPLIFIED.append_frame(ORIGINAL.ts[i], BIO.read(-1))
+
                 else:
                     AMPLIFIED.append_frame(ORIGINAL.ts[i], FRAME)
                 i = i + 1
@@ -241,18 +249,19 @@ if __name__ == "__main__":
                 # Write amplified event to video.amp.dat.
                 # k was treated as a index before.
                 for indx in range(k):
+
                     IMG = Image.fromarray(AMPLIFIED_VERSION[:, :, :, indx])
                     if MERGE_VIDEO is None:
-                        draw = ImageDraw.Draw(IMG)
-                        draw.text((280, 5), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+                        DRAW = ImageDraw.Draw(IMG)
+                        DRAW.text((280, 5), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
                     else:
-                        draw = ImageDraw.Draw(IMG)
-                        draw.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
-                        draw.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
-                    bio = BytesIO()
-                    IMG.save(bio, format="JPEG")
-                    bio.seek(0)
-                    AMPLIFIED.append_frame(ORIGINAL.ts[i + indx], bio.read(-1))
+                        DRAW = ImageDraw.Draw(IMG)
+                        DRAW.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
+                        DRAW.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+                    BIO = BytesIO()
+                    IMG.save(BIO, format="JPEG")
+                    BIO.seek(0)
+                    AMPLIFIED.append_frame(ORIGINAL.ts[i + indx], BIO.read(-1))
 
                 shutil.rmtree(TMP_FLDR)
                 remove("/tmp/vid.mat")
@@ -266,14 +275,13 @@ if __name__ == "__main__":
         _ENG.quit()
 
         if len(ORIGINAL.ts) != len(AMPLIFIED.timestamps):
-            print(i)
-            print(str(len(ORIGINAL.ts)) + "    " + str(len(AMPLIFIED.timestamps)))
-            raise NonMatchingAmplification("Length of the original and amplified video-files" +
-                                           " differ")
+            raise NonMatchingAmplificationError("Length of the original and amplified " +
+                                                "video-files differ")
         if ORIGINAL.ver != AMPLIFIED.ver:
-            raise NonMatchingAmplification("Files have different versions\nOriginal " +
-                                           str(ORIGINAL.ver) + " Amplified " +
-                                           str(AMPLIFIED.ver))
+            raise NonMatchingAmplificationError("Files have different versions\nOriginal " +
+                                                str(ORIGINAL.ver) + " Amplified " +
+                                                str(AMPLIFIED.ver))
+        # Perform check for resulting videofile
         AMPLIFIED.check_sanity()
 
     else:
