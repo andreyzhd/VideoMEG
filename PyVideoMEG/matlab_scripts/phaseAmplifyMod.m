@@ -1,5 +1,5 @@
 %% Original code is written by MIT. See original code and publication: http://people.csail.mit.edu/nwadhwa/phase-video/
-function res = phaseAmplify(vidFile, magPhase , fl, fh,fs, outDir, varargin)
+function res = phaseAmplifyMod(vidFile, magPhase , fl, fh,fs, outDir, varargin)
 
     vid(:,:,:,:) = vidFile(:,:,:,:);
 

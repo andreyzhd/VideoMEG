@@ -1,4 +1,4 @@
-function amplify(vidFile, sampleCount, framePerSample, cycles, pyramid, low, high, amp, videoMerge)
+function amplify(vidFile, sampleCount, framePerSample, cycles, pyramid, low, high, ampFactor, videoMerge)
 
 PhaseBasedAmpDir = '/home/janne/PhaseBasedAmp';
 
@@ -14,11 +14,27 @@ addpath(fullfile(PhaseBasedAmpDir, 'PhaseBased'));
 addpath(fullfile(PhaseBasedAmpDir, 'pyrToolsExt'));
 addpath(fullfile(PhaseBasedAmpDir, 'Filters'));
 
+fprintf('Low: %d\n', low);
+fprintf('High: %d\n', high);
+fprintf('Amp: %d\n', ampFactor);
 
+ampFactor = 10.0;
 
 vr = VideoReader(vidFile);
 fr = vr.FrameRate;
-original = vr.read();
+
+% This should cover all the possible frames
+expected = sampleCount * framePerSample + 1;
+% Except RGB24 uint8
+original = zeros(vr.Height, vr.Width, 3, expected);
+actual = 0;
+while hasFrame(vr)
+    actual = actual + 1;
+    original(:,:,:,actual) = readFrame(vr);
+end
+
+% Remove extra frames
+original = original(:,:,:,1:actual);
 
 [h, w, nChannel, nFrame] = size(original);
 
@@ -45,7 +61,7 @@ for s = 1:nSample
     stich(:,:,:,1:frPerSample,s) = samples(:,:,:,:,s);
     stich(:,:,:,frPerSample+1:2*frPerSample,s) = reverse(:,:,:,:,s);
 
-    disp(sprintf('Amplifying sample %02d/%02d.',s,nSample));
+    fprintf('Amplifying sample %02d/%02d.\n',s,nSample);
 
     if cycles ~= 1
         stich(:,:,:,:,2:cycles) = stich(:,:,:,:,1);
@@ -53,7 +69,7 @@ for s = 1:nSample
 
     % attenuateOtherFreq default is FALSE
     % sigma default is 0
-    amp = phaseAmplifyMod(stich(:,:,:,:,s), amp, low, high, fr, '', 'sigma', 0, 'attenuateOtherFreq', false, 'temporalFilter', @FIRWindowBP, 'pyrType', pyramid);
+    amp = phaseAmplifyMod(stich(:,:,:,:,s), ampFactor, low, high, fr, '', 'sigma', 0, 'attenuateOtherFreq', false, 'temporalFilter', @FIRWindowBP, 'pyrType', pyramid);
 
     % Resize to allow amplified and original to be side-by-side.
     % Keep aspect ratio.
