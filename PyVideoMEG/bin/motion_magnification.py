@@ -101,14 +101,12 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     # TODO Open the parameters to the CLI.
     # TODO Should we drop the cyclic manipulation before the amplification?
     # TODO Can we exclude normal breathing from amplification?
-    # TODO Matlab turns 10.0 into 1.0, Might be a bug worth reporting
 
-    print(type(amp))
     # Pyramid can be: 'octave', 'halfOctave', 'smoothHalfOctave', 'quarterOctave'
     pyramid = 'octave'
     amplified_as_matrix = engine.amplify(video_file, sample_count, frames_per_sample,
-                                         cycles, pyramid, low_cut, high_cut, merge_video,
-                                         amp, nargout=0)
+                                         cycles, pyramid, low_cut, high_cut, amp,
+                                        merge_video, nargout=0)
     return amplified_as_matrix
 
 if __name__ == "__main__":
@@ -153,12 +151,6 @@ if __name__ == "__main__":
             except ValueError:
                 print("Cannot convert value from {0} to float. Using 10.0 as amplification factor"
                       .format(o))
-
-    if True:
-        print(MERGE_VIDEO)
-        print(LOW)
-        print(HIGH)
-        print(AMPLIFICATION_FACTOR)
 
 
     if len(sys.argv) >= 2:

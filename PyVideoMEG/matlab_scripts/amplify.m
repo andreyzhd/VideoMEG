@@ -14,12 +14,6 @@ addpath(fullfile(PhaseBasedAmpDir, 'PhaseBased'));
 addpath(fullfile(PhaseBasedAmpDir, 'pyrToolsExt'));
 addpath(fullfile(PhaseBasedAmpDir, 'Filters'));
 
-fprintf('Low: %d\n', low);
-fprintf('High: %d\n', high);
-fprintf('Amp: %d\n', ampFactor);
-
-ampFactor = 10.0;
-
 vr = VideoReader(vidFile);
 fr = vr.FrameRate;
 
@@ -42,7 +36,6 @@ frPerSample = framePerSample;
 nSample = sampleCount;
 overflow = 0;
 
-% TODO calculate overflow frames and add them to end
 while (mod(frPerSample, nSample) ~= 0)
     frPerSample = frPerSample - 1;
     overflow = overflow + 1;
