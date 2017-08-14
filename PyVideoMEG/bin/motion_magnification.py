@@ -54,10 +54,6 @@ MATLAB_PHASEAMPMOD_M = op.join(MATLAB_SCRIPTS, 'phaseAmplifyMod.m')
 if not op.exists(MATLAB_AMPLIFY_M) or not op.exists(MATLAB_PHASEAMPMOD_M):
     raise IOError("Required Matlab scripts not found from pyvideomeg/matlab_scripts")
 
-FONT_FILE = '/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf'
-FONT_SZ = 20
-FONT = ImageFont.truetype(FONT_FILE, FONT_SZ)
-
 
 class OverLappingEventsError(Exception):
     """
@@ -74,18 +70,22 @@ class NonMatchingAmplificationError(Exception):
     pass
 
 
-def _rounded_evl_list(event_list):
+def _rounded_evl_list(event_list, duration):
     """
     Returns list of (start, end) -timestamps that have been ceiled to
-    closest 2 second blocks.
+    closest duration length blocks.
+
+    Note:
+        Might result in timestamps that are later than video end.
     """
     listed = []
-    print("REC START: {0}".format(event_list.rec_start))
     for event in event_list.get_events():
         middle = event.time - event_list.rec_start + (event.duration / 2.0)
-        ceiled_duration = max(float(ceil(event.duration)), 2.0)
-        if ceiled_duration % 2 != 0:
-            ceiled_duration = ceiled_duration + 1.0
+        ceiled_duration = max(float(ceil(event.duration)), duration)
+
+        # Ceil to next multiple of duration.
+        ceiled_duration = ceiled_duration + (ceiled_duration % duration)
+
         listed.append((middle - ceiled_duration / 2.0, middle + ceiled_duration / 2.0))
     return listed
 
@@ -112,8 +112,9 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
 if __name__ == "__main__":
 
     try:
-        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:l:h:a:", ["evl=", "video=", "merge",
-                                                                   "timing=", "low=", "high="])
+        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:l:h:a:d:", ["evl=", "video=", "merge",
+                                                                   "timing=", "low=", "high=",
+                                                                   "duration="])
     except getopt.GetoptError:
         print("Need path to .fif file\nmotion_amplify.py <.fif-file>\n" +
               "Optionals: --evl, --video, --merge, --timing")
@@ -125,6 +126,7 @@ if __name__ == "__main__":
     LOW = 0.3
     HIGH = 1.3
     AMPLIFICATION_FACTOR = 10.0
+    DURATION = 4.0
 
     for o, a in OPTS:
         if o in ("-e", "--evl"):
@@ -135,6 +137,8 @@ if __name__ == "__main__":
             MERGE_VIDEO = True
         elif o in ("-t", "--timing"):
             TIMING_CH = a
+        elif o in ("-d", "--duration"):
+            DURATION = float(a)
         elif o in ("-l", "--low"):
             try:
                 LOW = float(a)
@@ -184,7 +188,7 @@ if __name__ == "__main__":
             print("No events were found. nothing to amplify - exiting.")
             sys.exit()
 
-        EVENT_LIST = _rounded_evl_list(EVL)
+        EVENT_LIST = _rounded_evl_list(EVL, DURATION)
 
         # Check for overlaps in events
         # TODO Treat overlapping events as single event?
@@ -212,6 +216,10 @@ if __name__ == "__main__":
                   "Cannot proceed with amplification. Cleaning up and exiting.")
             remove(op.join(TREE, FNAME + ".video.amp.dat"))
             sys.exit()
+
+        FONT_FILE = '/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf'
+        FONT_SZ = 20
+        FONT = ImageFont.truetype(FONT_FILE, FONT_SZ)
 
         _ENG.cd(MATLAB_SCRIPTS)
 
@@ -262,9 +270,8 @@ if __name__ == "__main__":
                                            "0", TMP_FLDR+"/vid.avi"], stderr=subprocess.PIPE)
                 FFMPEG.wait()
 
-                # TODO Move sample length to a variable
                 SAMPLE_COUNT = round((EVENT_LIST[EVENT_NUMBER][1] -
-                                      EVENT_LIST[EVENT_NUMBER][0]) / 2.)
+                                      EVENT_LIST[EVENT_NUMBER][0]) / DURATION)
                 FRAME_PER_SAMPLE = round(float(k) / SAMPLE_COUNT)
                 phase_based_amplification(op.join(TMP_FLDR, "vid.avi"), SAMPLE_COUNT,
                                           FRAME_PER_SAMPLE, MERGE_VIDEO, LOW, HIGH,
