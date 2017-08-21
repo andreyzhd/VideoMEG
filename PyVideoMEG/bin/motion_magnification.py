@@ -106,15 +106,15 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     pyramid = 'octave'
     amplified_as_matrix = engine.amplify(video_file, sample_count, frames_per_sample,
                                          cycles, pyramid, low_cut, high_cut, amp,
-                                        merge_video, nargout=0)
+                                         merge_video, nargout=0)
     return amplified_as_matrix
 
 if __name__ == "__main__":
 
     try:
         OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:l:h:a:d:", ["evl=", "video=", "merge",
-                                                                   "timing=", "low=", "high=",
-                                                                   "duration="])
+                                                                     "timing=", "low=", "high=",
+                                                                     "duration="])
     except getopt.GetoptError:
         print("Need path to .fif file\nmotion_amplify.py <.fif-file>\n" +
               "Optionals: --evl, --video, --merge, --timing")
@@ -167,10 +167,10 @@ if __name__ == "__main__":
         if F_VID is not None:
             VIDEO_FILE = op.expanduser(F_VID)
         else:
-            VIDEO_FILE = op.join(TREE, FNAME + ".video.dat")
+            VIDEO_FILE = op.join(TREE, "{0}.video.dat".format(FNAME))
 
         try:
-            FIF = pyvideomeg.read_data.FifData(op.join(TREE, FNAME + ".fif"), TIMING_CH)
+            FIF = pyvideomeg.read_data.FifData(op.join(TREE, "{0}.fif".format(FNAME)), TIMING_CH)
         except IOError:
             print(".fif file was not found. Cannot get accurate timing data - exiting.")
             sys.exit()
@@ -179,7 +179,8 @@ if __name__ == "__main__":
             if F_EVL is not None:
                 EVL = pyvideomeg.read_data.EvlData.from_file(op.expanduser(F_EVL))
             else:
-                EVL = pyvideomeg.read_data.EvlData.from_file(op.join(TREE, FNAME + ".evl"))
+                EVL = pyvideomeg.read_data.EvlData.from_file(op.join(TREE,
+                                                                     "{0}.evl".format(FNAME)))
         except IOError:
             print(".evl file was not found. Using MNE automatic detection.")
             EVL = FIF.get_events()
@@ -189,18 +190,20 @@ if __name__ == "__main__":
             sys.exit()
 
         EVENT_LIST = _rounded_evl_list(EVL, DURATION)
+        EVENT_LIST = sorted(EVENT_LIST, key=lambda event: event[0])
 
         # Check for overlaps in events
         # TODO Treat overlapping events as single event?
         # TODO Should the length be adjusted by the expeced frequency?
         for i in range(1, len(EVENT_LIST)):
             if EVENT_LIST[i][0] < EVENT_LIST[i-1][1]:
-                raise OverLappingEventsError("Events " + str(i-1) + " and " + str(i) +
-                                             " overlap.\n" + "Amplification would be ambiguous")
+                raise OverLappingEventsError("Events {0} and {1} overlap.\n".format(i-1, i) +
+                                             "Amplification would be ambiguous")
 
         ORIGINAL = pyvideomeg.VideoData(VIDEO_FILE)
-        AMPLIFIED = pyvideomeg.VideoFile(op.join(TREE, FNAME + ".video.amp.dat"), ORIGINAL.ver,
-                                         site_id=ORIGINAL.site_id, is_sender=ORIGINAL.is_sender)
+        AMPLIFIED = pyvideomeg.VideoFile(op.join(TREE, "{0}.video.amp.dat".format(FNAME)),
+                                         ORIGINAL.ver, site_id=ORIGINAL.site_id,
+                                         is_sender=ORIGINAL.is_sender)
 
         FPS = (len(ORIGINAL.ts)-1) * 1000. / (ORIGINAL.ts[-1] - ORIGINAL.ts[0])
 
@@ -214,9 +217,9 @@ if __name__ == "__main__":
                   " 1 - Is your matlab engine for python installed and accessible?\n" +
                   " 2 - Do you have internet connection, to check your matlab license?\n\n" +
                   "Cannot proceed with amplification. Cleaning up and exiting.")
-            remove(op.join(TREE, FNAME + ".video.amp.dat"))
+            remove(op.join(TREE, "{0}.video.amp.dat".format(FNAME)))
             sys.exit()
-
+        # TODO Add support for Windows & Mac
         FONT_FILE = '/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf'
         FONT_SZ = 20
         FONT = ImageFont.truetype(FONT_FILE, FONT_SZ)
@@ -265,9 +268,10 @@ if __name__ == "__main__":
                     j = j + 1
                     k = k + 1
 
-                FFMPEG = subprocess.Popen(["ffmpeg", "-r", str(FPS)+"/1", "-i",
-                                           TMP_FLDR+"/%06d.jpg", "-c:v", "mjpeg", "-q:v",
-                                           "0", TMP_FLDR+"/vid.avi"], stderr=subprocess.PIPE)
+                FFMPEG = subprocess.Popen(["ffmpeg", "-r", "{0}/1".format(FPS), "-i",
+                                           "{0}/%06d.jpg".format(TMP_FLDR), "-c:v", "mjpeg",
+                                           "-q:v", "0", "{0}/vid.avi".format(TMP_FLDR)],
+                                          stderr=subprocess.PIPE)
                 FFMPEG.wait()
 
                 SAMPLE_COUNT = round((EVENT_LIST[EVENT_NUMBER][1] -
@@ -311,9 +315,9 @@ if __name__ == "__main__":
             raise NonMatchingAmplificationError("Length of the original and amplified " +
                                                 "video-files differ")
         if ORIGINAL.ver != AMPLIFIED.ver:
-            raise NonMatchingAmplificationError("Files have different versions\nOriginal " +
-                                                str(ORIGINAL.ver) + " Amplified " +
-                                                str(AMPLIFIED.ver))
+            raise NonMatchingAmplificationError(
+                "Files have different versions\nOriginal " +
+                "{0} Amplified {1}.".format(ORIGINAL.ver, AMPLIFIED.ver))
         # Perform check for resulting videofile
         AMPLIFIED.check_sanity()
 
