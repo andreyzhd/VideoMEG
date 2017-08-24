@@ -1,5 +1,5 @@
 ## Phase Based Motion Amplification
-[http://people.csail.mit.edu/nwadhwa/phase-video/](Original Research)
+(http://people.csail.mit.edu/nwadhwa/phase-video/)[Original Research]
 
 We wanna give a huge shoutout to guys from MIT ( Neal Wadhwa and Michael Rubinstein and Fredo Durand and William T. Freeman )
 for their wonderful research on Motion Magnification.
