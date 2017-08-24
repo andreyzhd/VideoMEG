@@ -43,7 +43,6 @@ __author__ = "Janne Holopainen"
 
 # TODO QOL Add display to show progress of amplification
 # TODO QOL Add Logging
-# TODO Write more comprehensive help
 
 VIDEOMEG_DIR = op.join(op.dirname(__file__), '..', '..')
 MATLAB_SCRIPTS = op.join(VIDEOMEG_DIR, 'matlab_scripts')
@@ -53,6 +52,27 @@ MATLAB_PHASEAMPMOD_M = op.join(MATLAB_SCRIPTS, 'phaseAmplifyMod.m')
 if not op.exists(MATLAB_AMPLIFY_M) or not op.exists(MATLAB_PHASEAMPMOD_M):
     raise IOError("Required Matlab scripts not found from pyvideomeg/matlab_scripts")
 
+SHORT_HELP = """Motion-magnification.py
+Required format: motion-magnification.py [OPTION] ... [.FIF-FILE]
+See motion-magnification.py --help for list of options."""
+LONG_HELP = """Motion-magnification.py
+Required format: motion-magnification.py [OPTION] ... [.FIF-FILE]
+
+Optional arguments:
+    --help                   - Prints this help.
+    -e | --evl= [FILE]       - Use FILE as source for EVL markings.
+    -v | --video= [FILE]     - Use FILE as source for video.
+    -m | --merge             - Format resulting video on side-by-side fashion (Where original video
+                               is on the left and amplified on right). Default is False.
+    -d | --duration [FLOAT]  - Change duration of the amplified pieces to FLOAT.
+    -l | --low [FLOAT]       - Change the lower bound for units to be amplified. Units in Hz.
+                               Default 0.3.
+    -h | --high [FLOAT]      - Change the high bound for units to be amplified. Units in Hz.
+                               Default 1.3.
+    -a [FLOAT]               - Change the amplification-factor. High values may result in distorted
+                               footages. Default 10.0.
+    -t | --timing [STRING]   - Name if the timing channel. Default 'STI 006'.
+    """
 
 class OverLappingEventsError(Exception):
     """
@@ -99,6 +119,7 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     # TODO Taking the scene from both sides of the event might not be the best idea.
     # TODO Should we drop the cyclic manipulation before the amplification? - Yes
     # TODO Test integration of Phase Based code
+    # TODO Update wiki according to integration
 
     # Pyramid can be: 'octave', 'halfOctave', 'smoothHalfOctave', 'quarterOctave'
     pyramid = 'octave'
@@ -113,10 +134,9 @@ if __name__ == "__main__":
     try:
         OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:l:h:a:d:", ["evl=", "video=", "merge",
                                                                      "timing=", "low=", "high=",
-                                                                     "duration="])
+                                                                     "duration=", "help"])
     except getopt.GetoptError:
-        print("Need path to .fif file\nmotion_amplify.py <.fif-file>\n" +
-              "Optionals: --evl, --video, --merge, --timing")
+        print(SHORT_HELP)
 
     F_EVL = None
     F_VID = None
@@ -126,6 +146,12 @@ if __name__ == "__main__":
     HIGH = 1.3
     AMPLIFICATION_FACTOR = 10.0
     DURATION = 4.0
+
+    # Perform first check only for HELP
+    for o, _ in OPTS:
+        if o == "--help":
+            print(LONG_HELP)
+            exit(0)
 
     for o, a in OPTS:
         if o in ("-e", "--evl"):
@@ -154,7 +180,6 @@ if __name__ == "__main__":
             except ValueError:
                 print("Cannot convert value from {0} to float. Using 10.0 as amplification factor"
                       .format(o))
-
 
     if len(sys.argv) >= 2:
         assert ARGS[0][-1] > 4 or ARGS[0][-4:] != ".fif"
@@ -206,14 +231,14 @@ if __name__ == "__main__":
         FPS = (len(ORIGINAL.ts)-1) * 1000. / (ORIGINAL.ts[-1] - ORIGINAL.ts[0])
 
         # Start Matlab-engine for amplification
-        # Won't work if internet connection is not available - matlab cannot check license.
+        # Won't work if internet connection is not available - Matlab cannot check license.
         try:
             _ENG = matlab.engine.start_matlab()
         # Matlab doesn't specify this exception
         except Exception:
             print("Problem starting Matlab engine. Possible reasons for this include:\n" +
-                  " 1 - Is your matlab engine for python installed and accessible?\n" +
-                  " 2 - Do you have internet connection, to check your matlab license?\n\n" +
+                  " 1 - Is your Matlab engine for python installed and accessible?\n" +
+                  " 2 - Do you have internet connection, to check your Matlab license?\n\n" +
                   "Cannot proceed with amplification. Cleaning up and exiting.")
             remove(op.join(TREE, "{0}.video.amp.dat".format(FNAME)))
             sys.exit()
@@ -316,8 +341,8 @@ if __name__ == "__main__":
             raise NonMatchingAmplificationError(
                 "Files have different versions\nOriginal " +
                 "{0} Amplified {1}.".format(ORIGINAL.ver, AMPLIFIED.ver))
-        # Perform check for resulting videofile
+        # Perform check for resulting video-file
         AMPLIFIED.check_sanity()
 
     else:
-        print("Need path to .fif file\nmotion_amplify.py <options> <.fif-file>")
+        print(SHORT_HELP)
