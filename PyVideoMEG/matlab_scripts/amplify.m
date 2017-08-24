@@ -1,18 +1,16 @@
-function amplify(vidFile, sampleCount, framePerSample, cycles, pyramid, low, high, ampFactor, videoMerge)
-
-PhaseBasedAmpDir = '/home/janne/PhaseBasedAmp';
+function amplify(vidFile, sampleCount, framePerSample, cycles, pyramid, low, high, ampFactor, videoMerge, phase_based_dir)
 
 % From PhaseBasedAmp
 % Paths for the linear method
-addpath(fullfile(PhaseBasedAmpDir, 'Linear'));
-addpath(fullfile(PhaseBasedAmpDir, 'Util'));
-addpath(fullfile(PhaseBasedAmpDir, 'matlabPyrTools'));
-addpath(fullfile(PhaseBasedAmpDir, 'matlabPyrTools', 'MEX'));
+addpath(fullfile(phase_based_dir, 'Linear'));
+addpath(fullfile(phase_based_dir, 'Util'));
+addpath(fullfile(phase_based_dir, 'matlabPyrTools'));
+addpath(fullfile(phase_based_dir, 'matlabPyrTools', 'MEX'));
 
 % Paths for the phase-based method
-addpath(fullfile(PhaseBasedAmpDir, 'PhaseBased'));
-addpath(fullfile(PhaseBasedAmpDir, 'pyrToolsExt'));
-addpath(fullfile(PhaseBasedAmpDir, 'Filters'));
+addpath(fullfile(phase_based_dir, 'PhaseBased'));
+addpath(fullfile(phase_based_dir, 'pyrToolsExt'));
+addpath(fullfile(phase_based_dir, 'Filters'));
 
 vr = VideoReader(vidFile);
 fr = vr.FrameRate;

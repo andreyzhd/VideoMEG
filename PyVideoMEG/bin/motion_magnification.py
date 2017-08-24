@@ -41,7 +41,6 @@ from scipy.io import loadmat
 
 __author__ = "Janne Holopainen"
 
-# TODO QOL Format print-statements to use .format
 # TODO QOL Add display to show progress of amplification
 # TODO QOL Add Logging
 # TODO Write more comprehensive help
@@ -98,15 +97,15 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     """
     cycles = 1
     # TODO Taking the scene from both sides of the event might not be the best idea.
-    # TODO Open the parameters to the CLI.
-    # TODO Should we drop the cyclic manipulation before the amplification?
-    # TODO Can we exclude normal breathing from amplification?
+    # TODO Should we drop the cyclic manipulation before the amplification? - Yes
+    # TODO Test integration of Phase Based code
 
     # Pyramid can be: 'octave', 'halfOctave', 'smoothHalfOctave', 'quarterOctave'
     pyramid = 'octave'
+    phase_based_dir = op.join(VIDEOMEG_DIR, 'phase_based')
     amplified_as_matrix = engine.amplify(video_file, sample_count, frames_per_sample,
                                          cycles, pyramid, low_cut, high_cut, amp,
-                                         merge_video, nargout=0)
+                                         merge_video, phase_based_dir, nargout=0)
     return amplified_as_matrix
 
 if __name__ == "__main__":
@@ -194,7 +193,6 @@ if __name__ == "__main__":
 
         # Check for overlaps in events
         # TODO Treat overlapping events as single event?
-        # TODO Should the length be adjusted by the expeced frequency?
         for i in range(1, len(EVENT_LIST)):
             if EVENT_LIST[i][0] < EVENT_LIST[i-1][1]:
                 raise OverLappingEventsError("Events {0} and {1} overlap.\n".format(i-1, i) +
