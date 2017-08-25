@@ -27,6 +27,12 @@ def package_tree(pkgroot):
                if '__init__.py' in i[2]]
     return subdirs
 
+def recursive_include(folder):
+    rettuples = []
+    for root, _, files in os.walk(folder):
+        rettuples.append((root, map(lambda f: op.join(root, f), files)))
+    return rettuples
+
 if __name__ == '__main__':
     setup(
         name=name,
@@ -44,9 +50,7 @@ if __name__ == '__main__':
         packages=package_tree('pyvideomeg'),
         package_dir={
             'pyvideomeg': 'pyvideomeg'},
-        data_files=[('matlab_scripts', ['matlab_scripts/amplify.m',
-                                        'matlab_scripts/phaseAmplifyMod.m'],
-                     'matlab_scripts/phase_based', ['matlab_scripts/*'])],
+        data_files=recursive_include('matlab_scripts'),
         zip_safe=False,
         classifiers=[
             'Development Status :: 3 - Alpha',
