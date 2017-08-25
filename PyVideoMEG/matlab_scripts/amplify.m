@@ -17,7 +17,7 @@ fr = vr.FrameRate;
 
 % This should cover all the possible frames
 expected = sampleCount * framePerSample + 1;
-% Except RGB24 uint8
+% Expect RGB24 uint8
 original = zeros(vr.Height, vr.Width, 3, expected);
 actual = 0;
 while hasFrame(vr)
@@ -32,12 +32,10 @@ original = original(:,:,:,1:actual);
 
 frPerSample = framePerSample;
 nSample = sampleCount;
-overflow = 0;
 
-while (mod(frPerSample, nSample) ~= 0)
-    frPerSample = frPerSample - 1;
-    overflow = overflow + 1;
-end
+% Check for cases where nFrame is not multiple of nSample and frPerSample.
+overflow = mod(nFrame, nSample);
+frPerSample = frPerSample - overflow;
 
 samples = zeros(h, w, nChannel, frPerSample, nSample, 'uint8');
 reverse = zeros(h, w, nChannel, frPerSample, nSample,'uint8');
@@ -47,7 +45,6 @@ out = zeros(h, w, nChannel, nFrame, 'uint8');
 for s = 1:nSample
     for f = 1:frPerSample
         samples(:,:,:,f,s) = original(:,:,:,((s-1)*frPerSample)+f);
-        % Index sometimes exceeds the matrix dimension.
         reverse(:,:,:,f,s) = original(:,:,:,(s*frPerSample)+1-f);
     end
     stich(:,:,:,1:frPerSample,s) = samples(:,:,:,:,s);

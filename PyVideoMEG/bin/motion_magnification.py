@@ -310,7 +310,7 @@ if __name__ == "__main__":
                 for indx in range(k):
 
                     IMG = Image.fromarray(AMPLIFIED_VERSION[:, :, :, indx])
-                    if MERGE_VIDEO is None:
+                    if not MERGE_VIDEO:
                         DRAW = ImageDraw.Draw(IMG)
                         DRAW.text((280, 5), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
                     else:
