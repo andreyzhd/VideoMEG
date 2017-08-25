@@ -118,12 +118,11 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     cycles = 1
     # TODO Taking the scene from both sides of the event might not be the best idea.
     # TODO Should we drop the cyclic manipulation before the amplification? - Yes
-    # TODO Test integration of Phase Based code
     # TODO Update wiki according to integration
 
     # Pyramid can be: 'octave', 'halfOctave', 'smoothHalfOctave', 'quarterOctave'
     pyramid = 'octave'
-    phase_based_dir = op.join(VIDEOMEG_DIR, 'phase_based')
+    phase_based_dir = op.join(MATLAB_SCRIPTS, 'phase_based')
     amplified_as_matrix = engine.amplify(video_file, sample_count, frames_per_sample,
                                          cycles, pyramid, low_cut, high_cut, amp,
                                          merge_video, phase_based_dir, nargout=0)

@@ -47,6 +47,7 @@ out = zeros(h, w, nChannel, nFrame, 'uint8');
 for s = 1:nSample
     for f = 1:frPerSample
         samples(:,:,:,f,s) = original(:,:,:,((s-1)*frPerSample)+f);
+        % Index sometimes exceeds the matrix dimension.
         reverse(:,:,:,f,s) = original(:,:,:,(s*frPerSample)+1-f);
     end
     stich(:,:,:,1:frPerSample,s) = samples(:,:,:,:,s);
