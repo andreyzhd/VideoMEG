@@ -119,6 +119,7 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     # TODO Taking the scene from both sides of the event might not be the best idea.
     # TODO Should we drop the cyclic manipulation before the amplification? - Yes
     # TODO Update wiki according to integration
+    # TODO Add requirements
 
     # Pyramid can be: 'octave', 'halfOctave', 'smoothHalfOctave', 'quarterOctave'
     pyramid = 'octave'
@@ -260,7 +261,7 @@ if __name__ == "__main__":
             VIDEO_TIME = (ORIGINAL.ts[i] - ORIGINAL.ts[0])/1000.0
             # All events handled or first event hasn't started yet
             if EVENT_NUMBER >= len(EVENT_LIST) or VIDEO_TIME < EVENT_LIST[EVENT_NUMBER][0]:
-                if MERGE_VIDEO is not None:
+                if not MERGE_VIDEO:
                     # Resize original video and paste it to the left part of the new video.
 
                     IMG = Image.new("RGB", (640, 480))
