@@ -15,7 +15,7 @@ description = 'Tools for MEG video data'
 
 
 # Get version and docstring
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __doc__ = ''
 docStatus = 0  # Not started, in progress, done
 
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         long_description=__doc__,
         platforms='any',
         provides=['pyvideomeg'],
-        install_requires=['numpy'],
+        install_requires=['numpy', 'pillow'],
         packages=package_tree('pyvideomeg'),
         package_dir={
             'pyvideomeg': 'pyvideomeg'},
