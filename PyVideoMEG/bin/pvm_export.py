@@ -32,7 +32,7 @@ import numpy
 
 from PIL import Image, ImageDraw, ImageFont
 try:
-    from StringIO import StringIO
+    from BytesIO import BytesIO
 except ImportError:
     from io import BytesIO
 
@@ -58,10 +58,7 @@ fnt = ImageFont.truetype(FONT_FILE, FONT_SZ)
 vid_file = pyvideomeg.VideoData(sys.argv[1])
 
 for i in range(len(vid_file.ts)):
-    if sys.version_info.major < 3:
-        img = Image.open(StringIO(vid_file.get_frame(i)))
-    else:
-        img = Image.open(BytesIO(vid_file.get_frame(i)))
+    img = Image.open(BytesIO(vid_file.get_frame(i)))
     draw = ImageDraw.Draw(img)
     draw.text((10,0), '%i  :  %s' % (vid_file.ts[i], pyvideomeg.ts2str(vid_file.ts[i])), font=fnt, fill='black')
     img.save('%s/%08i.jpg' % (tmp_fldr, i))
