@@ -1,4 +1,4 @@
-function amplify(vidFile, sampleCount, framePerSample, cycles, pyramid, low, high, ampFactor, videoMerge, phase_based_dir)
+function amplify(vidFile, sampleCount, framePerSample, cycles, pyramid, low, high, ampFactor, videoMerge, attenuate, phase_based_dir)
 
 % From PhaseBasedAmp
 % Paths for the linear method
@@ -58,7 +58,7 @@ for s = 1:nSample
 
     % attenuateOtherFreq default is FALSE
     % sigma default is 0
-    amp = phaseAmplifyMod(stich(:,:,:,:,s), ampFactor, low, high, fr, '', 'sigma', 0, 'attenuateOtherFreq', false, 'temporalFilter', @FIRWindowBP, 'pyrType', pyramid);
+    amp = phaseAmplifyMod(stich(:,:,:,:,s), ampFactor, low, high, fr, '', 'sigma', 0, 'attenuateOtherFreq', attenuate, 'temporalFilter', @FIRWindowBP, 'pyrType', pyramid);
 
     % Resize to allow amplified and original to be side-by-side.
     % Keep aspect ratio.

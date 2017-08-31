@@ -72,7 +72,14 @@ Optional arguments:
     -a [FLOAT]               - Change the amplification-factor. High values may result in distorted
                                footages. Default 10.0.
     -t | --timing [STRING]   - Name if the timing channel. Default 'STI 006'.
+    --attenuate              - Attenuate frequencies outside of the band between --low and --high.
+    -p | --pyramid [STRING]  - Change pyramid type used for magnification. Possible values
+                               ['octave', 'halfOctave', 'quarterOctave', 'smoothHalfOctave']
+                               Default 'octave'.
     """
+
+_PYRAMID_DICT = {"octave": "octave", "halfoctave": "halfOctave",
+                 "smoothHalfOctave": "smoothHalfOctave", "quarteroctave": "quarterOctave"}
 
 class OverLappingEventsError(Exception):
     """
@@ -110,7 +117,7 @@ def _rounded_evl_list(event_list, duration):
 
 
 def phase_based_amplification(video_file, sample_count, frames_per_sample, merge_video, low_cut,
-                              high_cut, amp, engine):
+                              high_cut, amp, att, pyramid, engine):
     """
     Calls matlab script with proper parameters, to perform amplification on video_file.
     Matlab saves the resulting video as matrix to /tmp/vid.mat.
@@ -119,22 +126,20 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     # TODO Taking the scene from both sides of the event might not be the best idea.
     # TODO Should we drop the cyclic manipulation before the amplification? - Yes
     # TODO Update wiki according to integration
-    # TODO Add requirements
 
-    # Pyramid can be: 'octave', 'halfOctave', 'smoothHalfOctave', 'quarterOctave'
-    pyramid = 'octave'
     phase_based_dir = op.join(MATLAB_SCRIPTS, 'phase_based')
     amplified_as_matrix = engine.amplify(video_file, sample_count, frames_per_sample,
                                          cycles, pyramid, low_cut, high_cut, amp,
-                                         merge_video, phase_based_dir, nargout=0)
+                                         merge_video, att, phase_based_dir, nargout=0)
     return amplified_as_matrix
 
 if __name__ == "__main__":
 
     try:
-        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:l:h:a:d:", ["evl=", "video=", "merge",
+        OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:l:h:a:d:p:", ["evl=", "video=", "merge",
                                                                      "timing=", "low=", "high=",
-                                                                     "duration=", "help"])
+                                                                     "duration=", "help",
+                                                                     "attenuate", "pyramid="])
     except getopt.GetoptError:
         print(SHORT_HELP)
 
@@ -146,6 +151,8 @@ if __name__ == "__main__":
     HIGH = 1.3
     AMPLIFICATION_FACTOR = 10.0
     DURATION = 4.0
+    ATTENUATE = False
+    PYRAMID = "octave"
 
     # Perform first check only for HELP
     for o, _ in OPTS:
@@ -180,6 +187,13 @@ if __name__ == "__main__":
             except ValueError:
                 print("Cannot convert value from {0} to float. Using 10.0 as amplification factor"
                       .format(o))
+        elif o == "--attenuate":
+            ATTENUATE = True
+        elif o in ("-p", "--pyramid"):
+            try:
+                PYRAMID = _PYRAMID_DICT[a.lower()]
+            except KeyError:
+                print("Unknown pyramid type: {0}. Using octave.")
 
     if len(sys.argv) >= 2:
         assert ARGS[0][-1] > 4 or ARGS[0][-4:] != ".fif"
@@ -206,7 +220,7 @@ if __name__ == "__main__":
                 EVL = pyvideomeg.read_data.EvlData.from_file(op.join(TREE,
                                                                      "{0}.evl".format(FNAME)))
         except IOError:
-            print(".evl file was not found. Using MNE automatic detection.")
+            print(".evl file was not found.")
             EVL = FIF.get_events()
 
         if not EVL.get_events():
@@ -302,7 +316,7 @@ if __name__ == "__main__":
                 FRAME_PER_SAMPLE = round(float(k) / SAMPLE_COUNT)
                 phase_based_amplification(op.join(TMP_FLDR, "vid.avi"), SAMPLE_COUNT,
                                           FRAME_PER_SAMPLE, MERGE_VIDEO, LOW, HIGH,
-                                          AMPLIFICATION_FACTOR, _ENG)
+                                          AMPLIFICATION_FACTOR, ATTENUATE, PYRAMID, _ENG)
                 _ENG.clear('all', nargout=0)
                 AMPLIFIED_VERSION = loadmat("/tmp/vid.mat")['out']
 
