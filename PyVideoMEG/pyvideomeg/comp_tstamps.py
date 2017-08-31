@@ -90,7 +90,7 @@ def _comp_tstamps_1bit(inp, sfreq):
     for i in numpy.where(dtrigs > _BASELINE * sfreq)[0]:
         ts = _read_timestamp(dtrigs, i, _TRAIN_STEP*sfreq, _NBITS)
 
-        if ts <> -1:
+        if ts != -1:
             samps.append(trigs[i+1])
             tss.append(ts)
 

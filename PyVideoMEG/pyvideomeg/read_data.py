@@ -263,7 +263,7 @@ class VideoData:
     """
     def __init__(self, file_name):
         self._file = open(file_name, 'rb')
-        assert(self._file.read(len('ELEKTA_VIDEO_FILE')) == 'ELEKTA_VIDEO_FILE')  # make sure the magic string is OK 
+        assert(self._file.read(len('ELEKTA_VIDEO_FILE')) == b'ELEKTA_VIDEO_FILE')  # make sure the magic string is OK 
         self.ver = struct.unpack('I', self._file.read(4))[0]
         
         if self.ver == 1 or self.ver == 2:        

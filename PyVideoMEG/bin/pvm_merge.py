@@ -30,7 +30,10 @@ import shutil
 import numpy
 
 from PIL import Image, ImageDraw, ImageFont
-import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import BytesIO
 
 import pyvideomeg
 
@@ -69,8 +72,12 @@ while i < len(vid_file_1.ts):
     indx.append(numpy.argmin(abs(vid_file_1.ts[i] - vid_file_2.ts)))
     err.append(vid_file_1.ts[i] - vid_file_2.ts[indx[-1]])
     
-    img1 = Image.open(StringIO.StringIO(vid_file_1.get_frame(i)))
-    img2 = Image.open(StringIO.StringIO(vid_file_2.get_frame(indx[-1])))
+    if sys.version_info.major < 3:
+        img1 = Image.open(StringIO(vid_file_1.get_frame(i)))
+        img2 = Image.open(StringIO(vid_file_2.get_frame(indx[-1])))
+    else:
+        img1 = Image.open(BytesIO(vid_file_1.get_frame(i)))
+        img2 = Image.open(BytesIO(vid_file_2.get_frame(indx[-1])))
     
     draw = ImageDraw.Draw(img1)
     draw.text((10,0), '%i  :  %s' % (vid_file_1.ts[i], pyvideomeg.ts2str(vid_file_1.ts[i])), font=fnt, fill='black')
