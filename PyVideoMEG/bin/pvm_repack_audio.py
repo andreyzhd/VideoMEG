@@ -49,7 +49,7 @@ ts_new = interp(t_new, t_old, aud_file.ts).round()
 # Write out the result
 out_file = open(sys.argv[3], 'wb')
 
-out_file.write('ELEKTA_AUDIO_FILE')
+out_file.write(b'ELEKTA_AUDIO_FILE')
 out_file.write(struct.pack('I', 1)) # file format version
 
 out_file.write(struct.pack('I', aud_file.srate))

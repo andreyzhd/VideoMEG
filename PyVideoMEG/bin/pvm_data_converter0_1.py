@@ -29,8 +29,8 @@ import struct
 import sys
 
 
-MAGIC_VIDEO_STR	= 'ELEKTA_VIDEO_FILE'
-MAGIC_AUDIO_STR	= 'ELEKTA_AUDIO_FILE'
+MAGIC_VIDEO_STR	= b'ELEKTA_VIDEO_FILE'
+MAGIC_AUDIO_STR	= b'ELEKTA_AUDIO_FILE'
 
 
 in_file = open(sys.argv[1], 'rb')

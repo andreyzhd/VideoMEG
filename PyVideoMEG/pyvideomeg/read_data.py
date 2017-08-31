@@ -81,11 +81,11 @@ def repair_file(file_name, fixed_file_name):
     #
     
     # Check the magick string
-    if inp_file.read(len('ELEKTA_AUDIO_FILE')) == 'ELEKTA_AUDIO_FILE':
+    if inp_file.read(len('ELEKTA_AUDIO_FILE')) == b'ELEKTA_AUDIO_FILE':
         is_audio = True
     else:        
         inp_file.seek(0, 0)
-        assert(inp_file.read(len('ELEKTA_VIDEO_FILE')) == 'ELEKTA_VIDEO_FILE')
+        assert(inp_file.read(len('ELEKTA_VIDEO_FILE')) == b'ELEKTA_VIDEO_FILE')
     
     # Read the file version
     ver = struct.unpack('I', inp_file.read(4))[0]
@@ -122,9 +122,9 @@ def repair_file(file_name, fixed_file_name):
     out_file = open(fixed_file_name, 'wb')
     
     if is_audio:
-        out_file.write('ELEKTA_AUDIO_FILE')
+        out_file.write(b'ELEKTA_AUDIO_FILE')
     else:
-        out_file.write('ELEKTA_VIDEO_FILE')
+        out_file.write(b'ELEKTA_VIDEO_FILE')
         
     out_file.write(struct.pack('I', ver))
     
@@ -171,7 +171,7 @@ class AudioData:
     """
     def __init__(self, file_name):
         data_file = open(file_name, 'rb')    
-        assert(data_file.read(len('ELEKTA_AUDIO_FILE')) == 'ELEKTA_AUDIO_FILE')  # make sure the magic string is OK 
+        assert(data_file.read(len('ELEKTA_AUDIO_FILE')) == b'ELEKTA_AUDIO_FILE')  # make sure the magic string is OK 
         self.ver = struct.unpack('I', data_file.read(4))[0]
         
         if self.ver == 1 or self.ver == 2:        
