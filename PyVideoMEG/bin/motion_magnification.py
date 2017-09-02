@@ -28,10 +28,6 @@ import subprocess
 import sys
 import shutil
 import getopt
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 import pyvideomeg
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
@@ -279,7 +275,7 @@ if __name__ == "__main__":
                     # Resize original video and paste it to the left part of the new video.
 
                     IMG = Image.new("RGB", (640, 480))
-                    ORI = Image.open(StringIO(ORIGINAL.get_frame(i)))
+                    ORI = Image.open(BytesIO(FRAME))
                     ORI = ORI.resize((320, 240), Image.BICUBIC)
                     DRAW = ImageDraw.Draw(IMG)
                     DRAW.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
@@ -296,11 +292,11 @@ if __name__ == "__main__":
             # Amplify event
             elif EVENT_LIST[EVENT_NUMBER][0] <= VIDEO_TIME <= EVENT_LIST[EVENT_NUMBER][1]:
                 TMP_FLDR = tempfile.mkdtemp()
-                j = i
-                k = 0
+                j = i # ORIGINAL FRAME NUMBER
+                k = 0 # EVENT FRAME NUMBER
                 # Read the whole event and save on temporary folder
                 while (ORIGINAL.ts[j] - ORIGINAL.ts[0])/1000.0 <= EVENT_LIST[EVENT_NUMBER][1]:
-                    IMG = Image.open(StringIO(ORIGINAL.get_frame(j)))
+                    IMG = Image.open(BytesIO(ORIGINAL.get_frame(j)))
                     IMG.save('%s/%06i.jpg' % (TMP_FLDR, k))
                     j = j + 1
                     k = k + 1
