@@ -112,7 +112,7 @@ def _rounded_evl_list(event_list, duration):
     return listed
 
 
-def phase_based_amplification(video_file, sample_count, frames_per_sample, merge_video, low_cut,
+def phase_based_amplification(video_file, sample_count, frames_per_sample, low_cut,
                               high_cut, amp, att, pyramid, engine):
     """
     Calls matlab script with proper parameters, to perform amplification on video_file.
@@ -126,8 +126,28 @@ def phase_based_amplification(video_file, sample_count, frames_per_sample, merge
     phase_based_dir = op.join(MATLAB_SCRIPTS, 'phase_based')
     amplified_as_matrix = engine.amplify(video_file, sample_count, frames_per_sample,
                                          cycles, pyramid, low_cut, high_cut, amp,
-                                         merge_video, att, phase_based_dir, nargout=0)
+                                         att, phase_based_dir, nargout=0)
     return amplified_as_matrix
+
+def merge_frames(left_image, right_image=None):
+    """
+    Creates a new image with left and right image pasted side-by-side.
+    If only left-image is supplied, will have a black box on place of right_image.
+    """
+    (w, h) = left_image.size
+    horizontal_middle = w/2
+    vertical_top = (h/2)/2
+
+    img = Image.new("RGB", (w, h))
+    left = left_image.resize((w/2, h/2), Image.BICUBIC)
+    img.paste(left, (0, vertical_top))
+
+    if right_image is not None:
+        right = right_image.resize((w/2, h/2), Image.BICUBIC)
+        img.paste(right, (horizontal_middle, vertical_top))
+
+    return img
+
 
 if __name__ == "__main__":
 
@@ -262,6 +282,10 @@ if __name__ == "__main__":
         EVENT_NUMBER = 0
         VIDEO_OFFSET = ORIGINAL.ts[0] - FIF.start_time
         i = 0
+        
+        # TEST
+        import time
+        start = time.time()
 
         while i < len(ORIGINAL.ts):
             FRAME = ORIGINAL.get_frame(i)
@@ -271,16 +295,15 @@ if __name__ == "__main__":
             VIDEO_TIME = (ORIGINAL.ts[i] - ORIGINAL.ts[0])/1000.0
             # All events handled or first event hasn't started yet
             if EVENT_NUMBER >= len(EVENT_LIST) or VIDEO_TIME < EVENT_LIST[EVENT_NUMBER][0]:
-                if not MERGE_VIDEO:
+                if MERGE_VIDEO:
                     # Resize original video and paste it to the left part of the new video.
 
-                    IMG = Image.new("RGB", (640, 480))
                     ORI = Image.open(BytesIO(FRAME))
-                    ORI = ORI.resize((320, 240), Image.BICUBIC)
+                    IMG = merge_frames(ORI)
                     DRAW = ImageDraw.Draw(IMG)
                     DRAW.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
                     DRAW.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
-                    IMG.paste(ORI, (0, 120))
+                    
                     BIO = BytesIO()
                     IMG.save(BIO, format="JPEG")
                     BIO.seek(0)
@@ -311,7 +334,7 @@ if __name__ == "__main__":
                                       EVENT_LIST[EVENT_NUMBER][0]) / DURATION)
                 FRAME_PER_SAMPLE = round(float(k) / SAMPLE_COUNT)
                 phase_based_amplification(op.join(TMP_FLDR, "vid.avi"), SAMPLE_COUNT,
-                                          FRAME_PER_SAMPLE, MERGE_VIDEO, LOW, HIGH,
+                                          FRAME_PER_SAMPLE, LOW, HIGH,
                                           AMPLIFICATION_FACTOR, ATTENUATE, PYRAMID, _ENG)
                 _ENG.clear('all', nargout=0)
                 AMPLIFIED_VERSION = loadmat("/tmp/vid.mat")['out']
@@ -321,13 +344,18 @@ if __name__ == "__main__":
                 for indx in range(k):
 
                     IMG = Image.fromarray(AMPLIFIED_VERSION[:, :, :, indx])
-                    if not MERGE_VIDEO:
-                        DRAW = ImageDraw.Draw(IMG)
-                        DRAW.text((280, 5), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
-                    else:
+
+                    if MERGE_VIDEO:
+                        # TODO Verify that this produces right output
+                        ORI = Image.open(BytesIO(ORIGINAL.get_frame(i + indx)))
+                        IMG = merge_frames(ORI, IMG)
                         DRAW = ImageDraw.Draw(IMG)
                         DRAW.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
                         DRAW.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+                    else:
+                        DRAW = ImageDraw.Draw(IMG)
+                        DRAW.text((280, 5), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+
                     BIO = BytesIO()
                     IMG.save(BIO, format="JPEG")
                     BIO.seek(0)
@@ -343,6 +371,9 @@ if __name__ == "__main__":
                 i = i + 1
 
         _ENG.quit()
+        end = time.time()
+
+        print("Amplifying took: {0} seconds".format(end - start))
 
         if len(ORIGINAL.ts) != len(AMPLIFIED.timestamps):
             raise NonMatchingAmplificationError("Length of the original and amplified " +
