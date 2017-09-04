@@ -60,10 +60,7 @@ for s = 1:nSample
     % sigma default is 0
     amp = phaseAmplifyMod(stich(:,:,:,:,s), ampFactor, low, high, fr, '', 'sigma', 0, 'attenuateOtherFreq', attenuate, 'temporalFilter', @FIRWindowBP, 'pyrType', pyramid);
 
-    % Resize to allow amplified and original to be side-by-side.
-    % Keep aspect ratio.
-    % Since Elekta Graph expects 640,480 video use those values
-    
+   
     out(:,:,:,(s-1)*framePerSample+1:s*framePerSample) = amp(:,:,:,1:frPerSample);
 
     

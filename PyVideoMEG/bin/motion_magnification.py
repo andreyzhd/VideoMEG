@@ -272,20 +272,19 @@ if __name__ == "__main__":
                   "Cannot proceed with amplification. Cleaning up and exiting.")
             remove(op.join(TREE, "{0}.video.amp.dat".format(FNAME)))
             sys.exit()
-        # TODO Add support for Windows & Mac
-        FONT_FILE = '/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf'
-        FONT_SZ = 20
-        FONT = ImageFont.truetype(FONT_FILE, FONT_SZ)
+        
+        try:
+            FONT_FILE = '/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf'
+            FONT = ImageFont.truetype(FONT_FILE, size=20)
+        except IOError, e:
+            FONT = ImageFont.truetype(size=20)
 
         _ENG.cd(MATLAB_SCRIPTS)
 
         EVENT_NUMBER = 0
         VIDEO_OFFSET = ORIGINAL.ts[0] - FIF.start_time
         i = 0
-        
-        # TEST
-        import time
-        start = time.time()
+
 
         while i < len(ORIGINAL.ts):
             FRAME = ORIGINAL.get_frame(i)
@@ -346,12 +345,13 @@ if __name__ == "__main__":
                     IMG = Image.fromarray(AMPLIFIED_VERSION[:, :, :, indx])
 
                     if MERGE_VIDEO:
-                        # TODO Verify that this produces right output
+
                         ORI = Image.open(BytesIO(ORIGINAL.get_frame(i + indx)))
                         IMG = merge_frames(ORI, IMG)
                         DRAW = ImageDraw.Draw(IMG)
                         DRAW.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
                         DRAW.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+
                     else:
                         DRAW = ImageDraw.Draw(IMG)
                         DRAW.text((280, 5), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
@@ -371,9 +371,7 @@ if __name__ == "__main__":
                 i = i + 1
 
         _ENG.quit()
-        end = time.time()
 
-        print("Amplifying took: {0} seconds".format(end - start))
 
         if len(ORIGINAL.ts) != len(AMPLIFIED.timestamps):
             raise NonMatchingAmplificationError("Length of the original and amplified " +
