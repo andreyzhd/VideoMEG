@@ -343,7 +343,6 @@ class EvlData:
                 if line[:2] == "))":
                     read_events = False
                 else:
-                    # TODO - Parsing doesn't always work. Testing & more robust write needed.
                     # Expect form ((:time xxx) (:class :"yyy") (:length zzz) (:annotation "www"))
                     stripped = line[3:-2]
                     pieced = stripped.split(") (")
@@ -351,9 +350,9 @@ class EvlData:
                     _class = pieced[1].rpartition(':')[2]
                     length = pieced[2].rpartition(' ')[2]
                     annotation = pieced[3].partition(" \"")[2][:-2]
-                    if annotation == "REC START":
+                    if annotation.lower() == "rec start":
                         rec_start = float(time)
-                    elif annotation == "REC END":
+                    elif annotation.lower() == "rec end":
                         rec_end = float(time)
                     else:
                         events.append(Event(time, _class, length, annotation))
@@ -376,7 +375,7 @@ class EvlData:
 class Event:
     """
     Contains data from single event.
-    Time is floating point s.
+    Time is floating point.
     """
     def __init__(self, time, _class, length, annotation):
         self.time = float(time)

@@ -28,25 +28,32 @@ import subprocess
 import sys
 import shutil
 import getopt
+import errno
 import pyvideomeg
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
-from os import remove, path as op
+from os import remove, strerror, path as op
 from math import ceil
 from scipy.io import loadmat
 
 __author__ = "Janne Holopainen"
 
-# TODO QOL Add display to show progress of amplification
-# TODO QOL Add Logging
 
 VIDEOMEG_DIR = op.join(op.dirname(__file__), '..', '..')
 MATLAB_SCRIPTS = op.join(VIDEOMEG_DIR, 'matlab_scripts')
+PHASE_BASED_DIR = op.join(MATLAB_SCRIPTS, 'phase_based')
 MATLAB_AMPLIFY_M = op.join(MATLAB_SCRIPTS, 'amplify.m')
 MATLAB_PHASEAMPMOD_M = op.join(MATLAB_SCRIPTS, 'phaseAmplifyMod.m')
 
-if not op.exists(MATLAB_AMPLIFY_M) or not op.exists(MATLAB_PHASEAMPMOD_M):
-    raise IOError("Required Matlab scripts not found from pyvideomeg/matlab_scripts")
+if not op.exists(MATLAB_AMPLIFY_M):
+    print("Required Matlab scripts not found from pyvideomeg/matlab_scripts")
+    raise IOError(errno.ENOENT, strerror(errno.ENOENT), MATLAB_AMPLIFY_M)
+if not op.exists(MATLAB_PHASEAMPMOD_M):
+    print("Required Matlab scripts not found from pyvideomeg/matlab_scripts")
+    raise IOError(errno.ENOENT, strerror(errno.ENOENT), MATLAB_PHASEAMPMOD_M)
+if not op.exists(PHASE_BASED_DIR):
+    print("Matlab code for Phase Based motion processing not found. Broken installation?")
+    raise IOError(errno.ENOENT, strerror(errno.ENOENT), PHASE_BASED_DIR)
 
 SHORT_HELP = """Motion-magnification.py
 Required format: motion-magnification.py [OPTION] ... [.FIF-FILE]
@@ -99,6 +106,9 @@ def _rounded_evl_list(event_list, duration):
 
     Note:
         Might result in timestamps that are later than video end.
+
+    Returns:
+        List    - List of events with start and end-time being eventually around event.
     """
     listed = []
     for event in event_list.get_events():
@@ -112,27 +122,43 @@ def _rounded_evl_list(event_list, duration):
     return listed
 
 
-def phase_based_amplification(video_file, sample_count, frames_per_sample, low_cut,
-                              high_cut, amp, att, pyramid, engine):
+def _phase_based_amplification(video_file, sample_count, frames_per_sample, low_cut,
+                               high_cut, amp, att, pyramid, engine):
     """
     Calls matlab script with proper parameters, to perform amplification on video_file.
     Matlab saves the resulting video as matrix to /tmp/vid.mat.
+
+    Attributes:
+        video_file (str)        - Path to videofile. Format should be MJPEG.
+        sample_count (int)      - In how many frames_per_sample sequences should the video be
+                                  processed.
+        frames_per_sample (int) - How many frames does a sample contain.
+        low_cut (float)         - Movement band-pass low cut
+        high_cut (float)        - Movement band-pass high cut
+        amp (float)             - Magnification factor
+        att (boolean)           - Will frequencies outside the band-pass be attenuated.
+        pyramid (str)           - Which pyramid will be used. See: _PYRAMID_DICT
+        engine (matlab.engine)  - Matlab engine to used with amplification.
+
+    Returns:
+        None    - Resulting video is saved to /tmp/vid.mat
+
     """
     cycles = 1
-    # TODO Taking the scene from both sides of the event might not be the best idea.
-    # TODO Should we drop the cyclic manipulation before the amplification? - Yes
-    # TODO Update wiki according to integration
+    # TODO Should we drop the cyclic manipulation before the amplification?
 
-    phase_based_dir = op.join(MATLAB_SCRIPTS, 'phase_based')
-    amplified_as_matrix = engine.amplify(video_file, sample_count, frames_per_sample,
-                                         cycles, pyramid, low_cut, high_cut, amp,
-                                         att, phase_based_dir, nargout=0)
-    return amplified_as_matrix
+    engine.amplify(video_file, sample_count, frames_per_sample,
+                   cycles, pyramid, low_cut, high_cut, amp,
+                   att, PHASE_BASED_DIR, nargout=0)
+
 
 def merge_frames(left_image, right_image=None):
     """
     Creates a new image with left and right image pasted side-by-side.
     If only left-image is supplied, will have a black box on place of right_image.
+
+    Returns:
+        Image   - New Image with picture(s) merged side-by-side.
     """
     (width, height) = left_image.size
     horizontal_middle = width/2
@@ -153,7 +179,7 @@ def _add_text_single(text, image, font):
     Add text to the top of the frame.
     Text is drawn to middle of the frame with 5 pixels from the top.
 
-    Return:
+    Returns:
         Image   - Original image, with text appended
     """
     (width, _) = image.size
@@ -170,7 +196,7 @@ def _add_text_double(left_text, right_text, image, font):
     Add text to side-by-side videos.
     Will draw the text to around one quarter from the top and also one quarter from sides.
 
-    Return:
+    Returns:
         image   - Original image, with text's appended
     """
     (width, height) = image.size
@@ -189,9 +215,9 @@ if __name__ == "__main__":
 
     try:
         OPTS, ARGS = getopt.getopt(sys.argv[1:], "e:v:mt:l:h:a:d:p:", ["evl=", "video=", "merge",
-                                                                     "timing=", "low=", "high=",
-                                                                     "duration=", "help",
-                                                                     "attenuate", "pyramid="])
+                                                                       "timing=", "low=", "high=",
+                                                                       "duration=", "help",
+                                                                       "attenuate", "pyramid="])
     except getopt.GetoptError:
         print(SHORT_HELP)
 
@@ -365,9 +391,9 @@ if __name__ == "__main__":
                 SAMPLE_COUNT = round((EVENT_LIST[EVENT_NUMBER][1] -
                                       EVENT_LIST[EVENT_NUMBER][0]) / DURATION)
                 FRAME_PER_SAMPLE = round(float(k) / SAMPLE_COUNT)
-                phase_based_amplification(op.join(TMP_FLDR, "vid.avi"), SAMPLE_COUNT,
-                                          FRAME_PER_SAMPLE, LOW, HIGH,
-                                          AMPLIFICATION_FACTOR, ATTENUATE, PYRAMID, _ENG)
+                _phase_based_amplification(op.join(TMP_FLDR, "vid.avi"), SAMPLE_COUNT,
+                                           FRAME_PER_SAMPLE, LOW, HIGH,
+                                           AMPLIFICATION_FACTOR, ATTENUATE, PYRAMID, _ENG)
                 _ENG.clear('all', nargout=0)
                 AMPLIFIED_VERSION = loadmat("/tmp/vid.mat")['out']
 

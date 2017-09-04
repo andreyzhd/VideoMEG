@@ -15,7 +15,7 @@ description = 'Tools for MEG video data'
 
 
 # Get version and docstring
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __doc__ = ''
 docStatus = 0  # Not started, in progress, done
 
