@@ -1,0 +1,7 @@
+matlabengineforpython===R2015b
+mne==0.14.1
+numpy==1.13.1
+olefile==0.44
+Pillow==4.2.1
+pyvideomeg==0.1.0
+scipy==0.19.1
