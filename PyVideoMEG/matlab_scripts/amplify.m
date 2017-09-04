@@ -35,7 +35,10 @@ nSample = sampleCount;
 
 % Check for cases where nFrame is not multiple of nSample and frPerSample.
 overflow = mod(nFrame, nSample);
-frPerSample = frPerSample - overflow;
+if overflow ~= 0
+    % Makes sure that nSample*frPerSample < nFrame
+    frPerSample = frPerSample - 1;
+end
 
 samples = zeros(h, w, nChannel, frPerSample, nSample, 'uint8');
 reverse = zeros(h, w, nChannel, frPerSample, nSample,'uint8');
@@ -60,9 +63,7 @@ for s = 1:nSample
     % sigma default is 0
     amp = phaseAmplifyMod(stich(:,:,:,:,s), ampFactor, low, high, fr, '', 'sigma', 0, 'attenuateOtherFreq', attenuate, 'temporalFilter', @FIRWindowBP, 'pyrType', pyramid);
 
-   
-    out(:,:,:,(s-1)*framePerSample+1:s*framePerSample) = amp(:,:,:,1:frPerSample);
-
+    out(:,:,:,(s-1)*frPerSample+1:s*frPerSample) = amp(:,:,:,1:frPerSample);
     
 end
 
