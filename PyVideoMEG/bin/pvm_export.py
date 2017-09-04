@@ -30,11 +30,8 @@ import tempfile
 import shutil
 import numpy
 
-from PIL import Image, ImageDraw, ImageFont
-try:                        #Python2.*
-    from StringIO import StringIO
-except ImportError:         #Python3.*
-    from io import StringIO
+import Image, ImageDraw, ImageFont
+import StringIO
 
 import pyvideomeg
 
@@ -58,7 +55,7 @@ fnt = ImageFont.truetype(FONT_FILE, FONT_SZ)
 vid_file = pyvideomeg.VideoData(sys.argv[1])
 
 for i in range(len(vid_file.ts)):
-    img = Image.open(StringIO(vid_file.get_frame(i)))
+    img = Image.open(StringIO.StringIO(vid_file.get_frame(i)))
     draw = ImageDraw.Draw(img)
     draw.text((10,0), '%i  :  %s' % (vid_file.ts[i], pyvideomeg.ts2str(vid_file.ts[i])), font=fnt, fill='black')
     img.save('%s/%08i.jpg' % (tmp_fldr, i))

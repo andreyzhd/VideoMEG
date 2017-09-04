@@ -29,11 +29,8 @@ import tempfile
 import shutil
 import numpy
 
-from PIL import Image, ImageDraw, ImageFont
-try:                    #Python2.*
-    from StringIO import StringIO
-except ImportError:     #Python3.*
-    from io import StringIO
+import Image, ImageDraw, ImageFont
+import StringIO
 
 import pyvideomeg
 
@@ -72,8 +69,8 @@ while i < len(vid_file_1.ts):
     indx.append(numpy.argmin(abs(vid_file_1.ts[i] - vid_file_2.ts)))
     err.append(vid_file_1.ts[i] - vid_file_2.ts[indx[-1]])
     
-    img1 = Image.open(StringIO(vid_file_1.get_frame(i)))
-    img2 = Image.open(StringIO(vid_file_2.get_frame(indx[-1])))
+    img1 = Image.open(StringIO.StringIO(vid_file_1.get_frame(i)))
+    img2 = Image.open(StringIO.StringIO(vid_file_2.get_frame(indx[-1])))
     
     draw = ImageDraw.Draw(img1)
     draw.text((10,0), '%i  :  %s' % (vid_file_1.ts[i], pyvideomeg.ts2str(vid_file_1.ts[i])), font=fnt, fill='black')
