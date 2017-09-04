@@ -148,6 +148,42 @@ def merge_frames(left_image, right_image=None):
 
     return img
 
+def _add_text_single(text, image, font):
+    """
+    Add text to the top of the frame.
+    Text is drawn to middle of the frame with 5 pixels from the top.
+
+    Return:
+        Image   - Original image, with text appended
+    """
+    (width, _) = image.size
+    text_start = (width/2 - 20, 5)
+
+    draw = ImageDraw.Draw(image)
+
+    draw.text(text_start, text, fill=(82, 90, 240), font=font)
+
+    return image
+
+def _add_text_double(left_text, right_text, image, font):
+    """
+    Add text to side-by-side videos.
+    Will draw the text to around one quarter from the top and also one quarter from sides.
+
+    Return:
+        image   - Original image, with text's appended
+    """
+    (width, height) = image.size
+    # Expect text to take about 40 pixels width
+    left_start = (width/4 - 20, height/4 - 20)
+    right_start = (3*(width/4) - 20, height/4 - 20)
+
+    draw = ImageDraw.Draw(image)
+
+    draw.text(left_start, left_text, fill=(82, 90, 240), font=font)
+    draw.text(right_start, right_text, fill=(82, 90, 240), font=font)
+
+    return image
 
 if __name__ == "__main__":
 
@@ -298,9 +334,7 @@ if __name__ == "__main__":
 
                     ORI = Image.open(BytesIO(FRAME))
                     IMG = merge_frames(ORI)
-                    DRAW = ImageDraw.Draw(IMG)
-                    DRAW.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
-                    DRAW.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+                    IMG = _add_text_double("ORIGINAL", "AMPLIFIED", IMG, FONT)
 
                     BIO = BytesIO()
                     IMG.save(BIO, format="JPEG")
@@ -347,13 +381,10 @@ if __name__ == "__main__":
 
                         ORI = Image.open(BytesIO(ORIGINAL.get_frame(i + indx)))
                         IMG = merge_frames(ORI, IMG)
-                        DRAW = ImageDraw.Draw(IMG)
-                        DRAW.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
-                        DRAW.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+                        IMG = _add_text_double("ORIGINAL", "AMPLIFIED", IMG, FONT)
 
                     else:
-                        DRAW = ImageDraw.Draw(IMG)
-                        DRAW.text((280, 5), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
+                        IMG = _add_text_single("AMPLIFIED", IMG, FONT)
 
                     BIO = BytesIO()
                     IMG.save(BIO, format="JPEG")
