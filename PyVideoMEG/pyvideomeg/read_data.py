@@ -406,11 +406,6 @@ class FifData:
         self._file_name = file_name
         # Using uint_cast=True to resolve bug with Neuromag acquisition
         # See https://martinos.org/mne/stable/generated/mne.find_events.html
-        # TODO min_duration needs to be adjusted
-        # Jussi might be the best person for consulting
-        min_duration = 0.02
-        self._events = mne.find_events(raw, output='step', min_duration=min_duration,
-                                       uint_cast=True, verbose=50)
         self.timestamps = comp_tstamps(timings, raw.info['sfreq'])
         self.start_time = self.timestamps[0]
         self.sampling_freq = raw.info['sfreq']
@@ -421,19 +416,3 @@ class FifData:
         :return: numpy.ndarray of timestamps
         """
         return self.timestamps
-
-    def get_events(self):
-        """
-        Finds events from fif-data according to mne.find_events and returns it
-        by default in evl-event format
-        :return: EvlData-class containing events in EvlData.events
-        """
-        # TODO Test on actual data
-        events = []
-        for e in self._events:
-            start = self.timestamps[e[1]]
-            duration = self.timestamps[e[1] + e[0]] - start
-            event = Event(start, 'MNE', duration, "MNE event " + str(e[2]))
-            events.append(event)
-        print("Found " + str(len(self._events)) + " events")
-        return EvlData(self._file_name, events, 0, 0)

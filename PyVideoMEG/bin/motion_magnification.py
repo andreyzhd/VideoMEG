@@ -134,16 +134,16 @@ def merge_frames(left_image, right_image=None):
     Creates a new image with left and right image pasted side-by-side.
     If only left-image is supplied, will have a black box on place of right_image.
     """
-    (w, h) = left_image.size
-    horizontal_middle = w/2
-    vertical_top = (h/2)/2
+    (width, height) = left_image.size
+    horizontal_middle = width/2
+    vertical_top = (height/2)/2
 
-    img = Image.new("RGB", (w, h))
-    left = left_image.resize((w/2, h/2), Image.BICUBIC)
+    img = Image.new("RGB", (width, height))
+    left = left_image.resize((width/2, height/2), Image.BICUBIC)
     img.paste(left, (0, vertical_top))
 
     if right_image is not None:
-        right = right_image.resize((w/2, h/2), Image.BICUBIC)
+        right = right_image.resize((width/2, height/2), Image.BICUBIC)
         img.paste(right, (horizontal_middle, vertical_top))
 
     return img
@@ -237,7 +237,6 @@ if __name__ == "__main__":
                                                                      "{0}.evl".format(FNAME)))
         except IOError:
             print(".evl file was not found.")
-            EVL = FIF.get_events()
 
         if not EVL.get_events():
             print("No events were found. nothing to amplify - exiting.")
@@ -272,11 +271,11 @@ if __name__ == "__main__":
                   "Cannot proceed with amplification. Cleaning up and exiting.")
             remove(op.join(TREE, "{0}.video.amp.dat".format(FNAME)))
             sys.exit()
-        
+
         try:
             FONT_FILE = '/usr/share/fonts/truetype/ubuntu-font-family/UbuntuMono-R.ttf'
             FONT = ImageFont.truetype(FONT_FILE, size=20)
-        except IOError, e:
+        except IOError:
             FONT = ImageFont.truetype(size=20)
 
         _ENG.cd(MATLAB_SCRIPTS)
@@ -302,7 +301,7 @@ if __name__ == "__main__":
                     DRAW = ImageDraw.Draw(IMG)
                     DRAW.text((120, 100), "ORIGINAL", fill=(82, 90, 240), font=FONT)
                     DRAW.text((440, 100), "AMPLIFIED", fill=(82, 90, 240), font=FONT)
-                    
+
                     BIO = BytesIO()
                     IMG.save(BIO, format="JPEG")
                     BIO.seek(0)
