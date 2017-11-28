@@ -1,0 +1,5 @@
+recursive-include matlab_scripts *
+prune other
+prune tests
+graft bin
+graft pyvideomeg

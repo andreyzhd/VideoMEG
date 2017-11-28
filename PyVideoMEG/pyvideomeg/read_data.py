@@ -28,10 +28,10 @@ class UnknownVersionError(Exception):
     pass
 
 def _read_attrib(data_file, ver):
-    '''
+    """
     Read data block attributes. If cannot read the attributes (EOF?), return
     -1 in ts
-    '''
+    """
     if ver == 1:
         attrib = data_file.read(12)
         if len(attrib) == 12:
@@ -254,7 +254,7 @@ class AudioData:
         
         return audio, audio_ts
         
-        
+
 class VideoData:
     """
     To read a video file initialize VideoData object with file name. You can
@@ -306,18 +306,112 @@ class VideoData:
         self._file.seek(offset)
         return(self._file.read(sz))
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
+class EvlData:
+    """
+    Event-list holding Event-class data.
+    Can be read from a .evl file with from_file method
+    """
+    def __init__(self, source_file, events, start, end):
+        self.source_file = source_file
+        self._events = events
+        self.rec_start = start
+        self.rec_end = end
+
+    def __new__(cls, source_file, events):
+        return cls(source_file, events, 0, 0)
+
+    @classmethod
+    def from_file(cls, file_name):
+        """
+        Read an .evl file for event info.
+        :param file_name: File-path to .evl file
+        :return: EvlData-class
+        """
+        print("Using Evl file: {0}".format(file_name))
+        f = open(file_name, 'r')
+        assert f.read(len("(videomeg::")) == "(videomeg::"
+        source_file = ""
+        events = []
+
+        read_events = False
+        rec_start = 0
+        rec_end = 0
+        # Only except to find source-file and events
+        for line in f:
+            if read_events:
+                if line[:2] == "))":
+                    read_events = False
+                else:
+                    # Expect form ((:time xxx) (:class :"yyy") (:length zzz) (:annotation "www"))
+                    stripped = line[3:-2]
+                    pieced = stripped.split(") (")
+                    time = pieced[0].rpartition(' ')[2]
+                    _class = pieced[1].rpartition(':')[2]
+                    length = pieced[2].rpartition(' ')[2]
+                    annotation = pieced[3].partition(" \"")[2][:-2]
+                    if annotation.lower() == "rec start":
+                        rec_start = float(time)
+                    elif annotation.lower() == "rec end":
+                        rec_end = float(time)
+                    else:
+                        events.append(Event(time, _class, length, annotation))
+            elif line.lstrip().startswith(":source-file"):
+                source_file = line.partition(" \"")[2][:-1]
+            elif line.lstrip().startswith(":events"):
+                read_events = True
+        return cls(source_file, events, rec_start, rec_end)
+
+    def __len__(self):
+        return len(self._events)
+
+    def get_events(self):
+        """
+        :return: Array of Event-class objects containing a single event
+        """
+        return self._events
+
+
+class Event:
+    """
+    Contains data from single event.
+    Time is floating point.
+    """
+    def __init__(self, time, _class, length, annotation):
+        self.time = float(time)
+        self._class = _class
+        self.duration = float(length)
+        self.annotation = annotation
+
+    def __str__(self):
+        return "Event start-time: " + str(self.time) + " and duration: " + str(self.duration)
+
+    def __repr__(self):
+        return ("Start-time: " + str(self.time) + "\nClass: " + self._class +
+                "\nLength: " + str(self.duration) + "\nAnnotation: " + self.annotation)
+
+
+class FifData:
+    """
+    Contains some data from .fif file.
+    """
+    def __init__(self, file_name, ch):
+        import mne
+        from pyvideomeg import comp_tstamps
+
+        raw = mne.io.read_raw_fif(fname=file_name, allow_maxshield=True, verbose=50)
+        timing_data = mne.pick_types(raw.info, meg=False, include=[ch])
+        timings = raw[timing_data, :][0].squeeze()
+        self._file_name = file_name
+        # Using uint_cast=True to resolve bug with Neuromag acquisition
+        # See https://martinos.org/mne/stable/generated/mne.find_events.html
+        self.timestamps = comp_tstamps(timings, raw.info['sfreq'])
+        self.start_time = self.timestamps[0]
+        self.sampling_freq = raw.info['sfreq']
+
+    def get_timestamps(self):
+        """
+        Get all the timestamps associated.
+        :return: numpy.ndarray of timestamps
+        """
+        return self.timestamps

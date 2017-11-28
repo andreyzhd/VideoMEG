@@ -1,0 +1,7 @@
+(videomeg::saved-event-list 
+ :source-file "/this_should_point_to/a_file.evl"
+ :events '(
+  ((:time  649.397981454) (:class :manual) (:length  5.67556500732) (:annotation "negative seizure"))
+  ((:time  465.544678702) (:class :manual) (:length  1.95019414348) (:annotation "interictal event"))
+  ((:time  77.919) (:class :manual) (:length 0.0) (:annotation "REC START"))
+))
