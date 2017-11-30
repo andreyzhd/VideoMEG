@@ -27,18 +27,13 @@ def package_tree(pkgroot):
                if '__init__.py' in i[2]]
     return subdirs
 
-def recursive_include(folder):
-    rettuples = []
-    for root, _, files in os.walk(folder):
-        rettuples.append((root, map(lambda f: op.join(root, f), files)))
-    return rettuples
 
 if __name__ == '__main__':
     setup(
         name=name,
         version=__version__,
         author='VideoMEG contributors',
-        author_email='andrey.zhdanov@aalto.fi',
+        author_email='andrey.zhdanov@alumni.aalto.fi',
         license='GPL v3',
         url='http://github.com/andreyzhd/VideoMEG',
         keywords="medical imaging",
@@ -50,7 +45,7 @@ if __name__ == '__main__':
         packages=package_tree('pyvideomeg'),
         package_dir={
             'pyvideomeg': 'pyvideomeg'},
-        data_files=recursive_include('matlab_scripts'),
+        package_data={},
         zip_safe=False,
         classifiers=[
             'Development Status :: 3 - Alpha',
@@ -73,7 +68,6 @@ if __name__ == '__main__':
             op.join('bin', 'pvm_export_audio.py'),
             op.join('bin', 'pvm_export_dragdrop.py'),
             op.join('bin', 'pvm_repack_audio.py'),
-            op.join('bin', 'pvm_show_info.py'),
-            op.join('bin', 'motion_magnification.py')
+            op.join('bin', 'pvm_show_info.py')
         ],
     )

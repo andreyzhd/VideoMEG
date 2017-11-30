@@ -6,3 +6,4 @@ for their wonderful research on Motion Magnification.
 
 Files in this folder are under different license.
 Please refer to LICENSE_Linear.pdf for more info.
+The files have been downloaded from the site mentioned above on Nov 30 2017.

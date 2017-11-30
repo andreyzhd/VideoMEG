@@ -39,9 +39,9 @@ from scipy.io import loadmat
 __author__ = "Janne Holopainen"
 
 
-VIDEOMEG_DIR = op.join(op.dirname(__file__), '..', '..')
-MATLAB_SCRIPTS = op.join(VIDEOMEG_DIR, 'matlab_scripts')
-PHASE_BASED_DIR = op.join(MATLAB_SCRIPTS, 'phase_based')
+VIDEOMEG_DIR = op.join(op.dirname(__file__), '..')
+MATLAB_SCRIPTS = op.join(VIDEOMEG_DIR, 'Third_Party', 'MIT_video_amplification')
+PHASE_BASED_DIR = op.join(MATLAB_SCRIPTS, 'original')
 MATLAB_AMPLIFY_M = op.join(MATLAB_SCRIPTS, 'amplify.m')
 MATLAB_PHASEAMPMOD_M = op.join(MATLAB_SCRIPTS, 'phaseAmplifyMod.m')
 
