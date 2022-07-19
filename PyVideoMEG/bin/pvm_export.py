@@ -2,7 +2,7 @@
 
 """
 Export a pair of video and audio files to a standard video format. Requires
-mencoder and imagemagick
+mencoder.
 
 Usage: pvm_export video_file_name audio_file_name output_file_name. The audio
 file name is optional.

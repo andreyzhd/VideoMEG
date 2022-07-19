@@ -1,0 +1,7 @@
+name: videomeg
+dependencies:
+- python>=3.8
+- pillow
+- numpy
+- scipy
+- pip
