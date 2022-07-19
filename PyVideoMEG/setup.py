@@ -68,6 +68,8 @@ if __name__ == '__main__':
             op.join('bin', 'pvm_export_audio.py'),
             op.join('bin', 'pvm_export_dragdrop.py'),
             op.join('bin', 'pvm_repack_audio.py'),
+            op.join('bin', 'pvm_repair.py'),
+            op.join('bin', 'pvm_merge.py'),
             op.join('bin', 'pvm_show_info.py')
         ],
     )
