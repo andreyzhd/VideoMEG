@@ -19,24 +19,24 @@
 """
 
 import numpy as np
-import PIL
-import cStringIO
+from PIL import Image
+import io
 import struct
 
 import pyvideomeg
 
-FNAME_1 = '/home/andrey/Desktop/test/3/videoMEG_sync_test.video_01.dat'
-FNAME_2 = '/home/andrey/Desktop/test/3/videoMEG_sync_test.video_02.dat'
+FNAME_1 = '/home/andrey/data/2014-06-18--11-38-18--p3_instructions--site_2_sender.vid'
+FNAME_2 = '/home/andrey/data/2014-06-18--12-37-46--p3_instructions--site_0_sender.vid'
 
-OUT_FNAME = '/home/andrey/Desktop/test/3/videoMEG_sync_test.video_merged.dat'
+OUT_FNAME = '/home/andrey/data/merged.vid'
 
-FRAME_SZ = (640, 480)
+FRAME_SZ = (1280, 480)
 
 file_1 = pyvideomeg.VideoData(FNAME_1)
 file_2 = pyvideomeg.VideoData(FNAME_2)
 
 out_file = out_file = open(OUT_FNAME, 'wb')
-out_file.write('ELEKTA_VIDEO_FILE')
+out_file.write(b'ELEKTA_VIDEO_FILE')
 out_file.write(struct.pack('I', 1)) # file format version
 
 for i in range(len(file_1.ts)):
@@ -44,21 +44,21 @@ for i in range(len(file_1.ts)):
     file2_indx = np.argmin(np.abs(file_2.ts - file_1.ts[i]))
     
     # merge the images
-    im0 = PIL.Image.open(cStringIO.StringIO(file_1.get_frame(i)))
-    im1 = PIL.Image.open(cStringIO.StringIO(file_2.get_frame(file2_indx)))
+    im0 = Image.open(io.BytesIO(file_1.get_frame(i)))
+    im1 = Image.open(io.BytesIO(file_2.get_frame(file2_indx)))
     
-    im0.resize((FRAME_SZ[0]//2, FRAME_SZ[1]), PIL.Image.ANTIALIAS)
-    im1.resize((FRAME_SZ[0]//2, FRAME_SZ[1]), PIL.Image.ANTIALIAS)
+    im0_r = im0.resize((FRAME_SZ[0]//2, FRAME_SZ[1]), Image.Resampling.LANCZOS)
+    im1_r = im1.resize((FRAME_SZ[0]//2, FRAME_SZ[1]), Image.Resampling.LANCZOS)
     
-    res = PIL.Image.new('RGB', FRAME_SZ)
-    res.paste(im0, (0,0))
-    res.paste(im1, (FRAME_SZ[0]//2,0))
+    res = Image.new('RGB', FRAME_SZ)
+    res.paste(im0_r, (0,0))
+    res.paste(im1_r, (FRAME_SZ[0]//2,0))
 
     # write the merged image to the output file
-    buf = cStringIO.StringIO()
+    buf = io.BytesIO()
     res.save(buf, 'JPEG')
     len(buf.getvalue())
-    out_file.write(struct.pack('Q', file_1.ts[i]))
+    out_file.write(struct.pack('Q', int(file_1.ts[i])))
     out_file.write(struct.pack('I', len(buf.getvalue())))
     out_file.write(buf.getvalue())
     buf.close()
