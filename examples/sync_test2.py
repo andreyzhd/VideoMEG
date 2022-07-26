@@ -25,18 +25,19 @@
 """
 
 import PIL
-import cStringIO
+import io
 import matplotlib.pyplot as plt
 import numpy as np
 import mne
 import pyvideomeg
 
-VIDEO_FNAME_1 = '/home/andrey/Desktop/test/3/videoMEG_sync_test.video_01.dat'
-VIDEO_FNAME_2 = '/home/andrey/Desktop/test/3/videoMEG_sync_test.video_02.dat'
-AUDIO_FNAME = '/home/andrey/Desktop/test/3/videoMEG_sync_test.audio.dat'
-MEG_FNAME = '/home/andrey/Desktop/test/3/videoMEG_sync_test.fif'
-TIMING_CH = 'STI006'
-MEG_CH = 'STI001'
+VIDEO_FNAME_1 = '/home/andrey/data/LA/LA_wakeup01R_st_mc.video.dat'
+VIDEO_FNAME_2 = '/home/andrey/data/LA/LA_wakeup01R_st_mc.video.dat'
+AUDIO_FNAME = '/home/andrey/data/LA/LA_wakeup01R_st_mc.audio.dat'
+MEG_FNAME = '/home/andrey/data/LA/LA_wakeup01R_st_mc.fif'
+
+TIMING_CH = 'STI 006'
+MEG_CH = 'STI 006'
 FRAME_SZ = (640, 480)
 OUT_FLDR = '/tmp'
 WIND_WIDTH = 3  # in frames
@@ -88,9 +89,9 @@ for i in range(1+WIND_WIDTH, len(vid_file_1.ts)-(1+WIND_WIDTH)):
     #
 
     # paste 3 frames from the first video file
-    im0 = PIL.Image.open(cStringIO.StringIO(vid_file_1.get_frame(i-1)))
-    im1 = PIL.Image.open(cStringIO.StringIO(vid_file_1.get_frame(i)))
-    im2 = PIL.Image.open(cStringIO.StringIO(vid_file_1.get_frame(i+1)))
+    im0 = PIL.Image.open(io.BytesIO(vid_file_1.get_frame(i-1)))
+    im1 = PIL.Image.open(io.BytesIO(vid_file_1.get_frame(i)))
+    im2 = PIL.Image.open(io.BytesIO(vid_file_1.get_frame(i+1)))
    
     res.paste(im0, (0,0))
     res.paste(im1, (FRAME_SZ[0],0))
@@ -101,9 +102,9 @@ for i in range(1+WIND_WIDTH, len(vid_file_1.ts)-(1+WIND_WIDTH)):
     vid2_indx = vid2_indx_unsorted[np.argsort(vid_file_2.ts[vid2_indx_unsorted])]   # order the 3 frames
     
     # paste 3 frames from the second video file
-    im0 = PIL.Image.open(cStringIO.StringIO(vid_file_2.get_frame(vid2_indx[0])))
-    im1 = PIL.Image.open(cStringIO.StringIO(vid_file_2.get_frame(vid2_indx[1])))
-    im2 = PIL.Image.open(cStringIO.StringIO(vid_file_2.get_frame(vid2_indx[2])))
+    im0 = PIL.Image.open(io.BytesIO(vid_file_2.get_frame(vid2_indx[0])))
+    im1 = PIL.Image.open(io.BytesIO(vid_file_2.get_frame(vid2_indx[1])))
+    im2 = PIL.Image.open(io.BytesIO(vid_file_2.get_frame(vid2_indx[2])))
    
     res.paste(im0, (0, FRAME_SZ[1]+(FRAME_SZ[1]*2//3)))
     res.paste(im1, (FRAME_SZ[0], FRAME_SZ[1]+(FRAME_SZ[1]*2//3)))
@@ -144,12 +145,12 @@ for i in range(1+WIND_WIDTH, len(vid_file_1.ts)-(1+WIND_WIDTH)):
  
     # Get the RGBA buffer from the figure
     w, h = fig.canvas.get_width_height()
-    buf = np.fromstring(fig.canvas.tostring_argb(), dtype=np.uint8)
+    buf = np.frombuffer(fig.canvas.tostring_argb(), dtype=np.uint8)
     buf.shape = (w, h, 4)
  
     # canvas.tostring_argb give pixmap in ARGB mode. Roll the ALPHA channel to have it in RGBA mode
     buf = np.roll(buf, 3, axis=2)
-    im_trc = PIL.Image.fromstring("RGBA", (w, h), buf.tostring())
+    im_trc = PIL.Image.frombytes("RGBA", (w, h), buf.tobytes())
     res.paste(im_trc, (0, FRAME_SZ[1]))
     
     plt.close('all')

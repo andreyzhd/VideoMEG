@@ -221,7 +221,7 @@ class AudioData:
         # Compute timestamps for all the audio samples
         #
         n_chunks = len(self.ts)
-        samp_per_buf = self.buf_sz / (self.nchan * _BYTES_PER_SAMPLE)
+        samp_per_buf = self.buf_sz // (self.nchan * _BYTES_PER_SAMPLE)
         nsamp = samp_per_buf * n_chunks
         samps = numpy.arange(samp_per_buf-1, nsamp, samp_per_buf)
         
@@ -229,7 +229,7 @@ class AudioData:
         audio_ts = -numpy.ones(nsamp)
         
         # split the data into segments for piecewise linear regression
-        split_indx = range(0, nsamp, _REGR_SEGM_LENGTH * self.srate)
+        split_indx = list(range(0, nsamp, _REGR_SEGM_LENGTH * self.srate))
         split_indx[-1] = nsamp  # the last segment might be up to twice as long as the others
         
         for i in range(len(split_indx)-1):

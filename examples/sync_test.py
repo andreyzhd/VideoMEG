@@ -25,17 +25,17 @@
 """
 
 import PIL
-import cStringIO
+import io
 import matplotlib.pyplot as plt
 import numpy as np
 import mne
 import pyvideomeg
 
-VIDEO_FNAME = '/home/andrey/Desktop/test/1/tapping_01_raw.video.dat'
-AUDIO_FNAME = '/home/andrey/Desktop/test/1/tapping_01_raw.audio.dat'
-MEG_FNAME = '/home/andrey/Desktop/test/1/tapping_01_raw.fif'
-TIMING_CH = 'STI006'
-MEG_CH = 'STI006'
+VIDEO_FNAME = '/home/andrey/data/LA/LA_wakeup01R_st_mc.video.dat'
+AUDIO_FNAME = '/home/andrey/data/LA/LA_wakeup01R_st_mc.audio.dat'
+MEG_FNAME = '/home/andrey/data/LA/LA_wakeup01R_st_mc.fif'
+TIMING_CH = 'STI 006'
+MEG_CH = 'STI 006'
 FRAME_SZ = (640, 480)
 OUT_FLDR = '/tmp'
 WIND_WIDTH = 3  # in frames
@@ -78,9 +78,9 @@ aud_scale = np.percentile(np.abs(audio), SCALE_PRCTILE_AUDIO) * 1.1
 
 for i in range(1+WIND_WIDTH, len(vid_file.ts)-(1+WIND_WIDTH)):
     # combine 3 frames
-    im0 = PIL.Image.open(cStringIO.StringIO(vid_file.get_frame(i-1)))
-    im1 = PIL.Image.open(cStringIO.StringIO(vid_file.get_frame(i)))
-    im2 = PIL.Image.open(cStringIO.StringIO(vid_file.get_frame(i+1)))
+    im0 = PIL.Image.open(io.BytesIO(vid_file.get_frame(i-1)))
+    im1 = PIL.Image.open(io.BytesIO(vid_file.get_frame(i)))
+    im2 = PIL.Image.open(io.BytesIO(vid_file.get_frame(i+1)))
    
     res = PIL.Image.new('RGB', (FRAME_SZ[0]*3, FRAME_SZ[1]))
     res.paste(im0, (0,0))
